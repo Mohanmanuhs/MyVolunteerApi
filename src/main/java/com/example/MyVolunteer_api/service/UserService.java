@@ -1,21 +1,17 @@
 package com.example.MyVolunteer_api.service;
 
-
-import com.example.MyVolunteer_api.model.User;
+import com.example.MyVolunteer_api.model.user.User;
 
 public interface UserService {
 
-    // Create a user
-    User create(User user);
+    User createUser(User user);
 
-    // Change password
-    void changePassword(User user, String newPasword);
+    User changePassword(User user,String newPassword);
 
-    // Update user
-    User update(User user);
+    User updateUser(User user);
 
-    // Delete user
-    void delete(User user);
+    User findById(Integer id);
 
-    User findbyId(int id);
+    void deleteUser(User user);
+
 }

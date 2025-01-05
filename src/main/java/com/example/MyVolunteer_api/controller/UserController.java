@@ -1,38 +1,42 @@
 package com.example.MyVolunteer_api.controller;
 
-import com.example.MyVolunteer_api.model.User;
+import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.create(user);
+    @PostMapping("/create")
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
     }
 
-    @PutMapping("/edit")
-    public User editUser(@RequestBody User user) {
-        return userService.update(user);
+    @PutMapping("/changePassword/{newPassword}")
+    public ResponseEntity<User> changePassword(@RequestBody User user,@PathVariable String newPassword) {
+        return ResponseEntity.ok(userService.changePassword(user, newPassword));
     }
 
-    @PutMapping("/UpdatePassword")
-    public String updatePassword(@RequestBody User user, String newPassword) {
-        userService.changePassword(user, newPassword);
-        return "Password updated successfully";
+    @PutMapping("/update")
+    public ResponseEntity<User> updateUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(user));
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteUser(@RequestBody User user) {
-        return ResponseEntity.ok("User deleted successfully");
+    @GetMapping("/findById/{id}")
+    public ResponseEntity<User> findById(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.findById(id));
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteUser(@RequestBody User user) {
+        userService.deleteUser(user);
+        return ResponseEntity.noContent().build();
+    }
 
 }

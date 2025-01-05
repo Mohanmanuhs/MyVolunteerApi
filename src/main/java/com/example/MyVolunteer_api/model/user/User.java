@@ -1,19 +1,19 @@
-package com.example.MyVolunteer_api.model;
+package com.example.MyVolunteer_api.model.user;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
-@Table(name = "user_details")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode
+@Entity
+@Table(name = "userTable")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
     private Integer id;
 
     @Column(unique = true, nullable = false)
@@ -22,10 +22,11 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    private String phone;
-
     @Column(nullable = false)
     private String password;
+
+    @Column
+    private String phone;
 
     private Gender gender;
 
@@ -33,4 +34,3 @@ public class User {
     private Role role;
 
 }
-

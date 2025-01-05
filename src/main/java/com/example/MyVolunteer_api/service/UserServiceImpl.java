@@ -1,41 +1,41 @@
 package com.example.MyVolunteer_api.service;
 
-import com.example.MyVolunteer_api.model.User;
+import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
 
     @Autowired
     private UserRepository userRepository;
 
+
     @Override
-    public User create(User user) {
+    public User createUser(User user) {
         return userRepository.save(user);
     }
 
     @Override
-    public void changePassword(User user, String newPassword) {
-        user.setPassword(newPassword);
-        userRepository.save(user);
+    public User changePassword(User user, String newPassword) {
+        User user1 = findById(user.getId());
+        user1.setPassword(newPassword);
+        return userRepository.save(user1);
     }
 
     @Override
-    public User update(User user) {
+    public User updateUser(User user) {
         return userRepository.save(user);
     }
 
     @Override
-    public void delete(User user) {
-        userRepository.delete(user);
-    }
-
-    @Override
-    public User findbyId(int id) {
+    public User findById(Integer id) {
         return userRepository.findById(id).orElseThrow();
     }
 
-
+    @Override
+    public void deleteUser(User user) {
+        userRepository.delete(user);
+    }
 }
