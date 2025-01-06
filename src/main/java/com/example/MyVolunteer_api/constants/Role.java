@@ -1,4 +1,4 @@
-package com.example.MyVolunteer_api.model.user;
+package com.example.MyVolunteer_api.constants;
 
 public enum Role {
     VOLUNTEER,

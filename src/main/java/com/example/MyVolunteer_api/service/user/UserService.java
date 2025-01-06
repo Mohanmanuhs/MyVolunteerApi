@@ -1,4 +1,4 @@
-package com.example.MyVolunteer_api.service;
+package com.example.MyVolunteer_api.service.user;
 
 import com.example.MyVolunteer_api.model.user.User;
 

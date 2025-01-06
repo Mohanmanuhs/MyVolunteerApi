@@ -1,7 +1,7 @@
 package com.example.MyVolunteer_api.dto;
 
-import com.example.MyVolunteer_api.model.user.Gender;
-import com.example.MyVolunteer_api.model.user.Role;
+import com.example.MyVolunteer_api.constants.Gender;
+import com.example.MyVolunteer_api.constants.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

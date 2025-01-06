@@ -1,5 +1,7 @@
 package com.example.MyVolunteer_api.model.user;
 
+import com.example.MyVolunteer_api.constants.Gender;
+import com.example.MyVolunteer_api.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +15,7 @@ import lombok.*;
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(unique = true, nullable = false)
