@@ -6,6 +6,9 @@ import com.example.MyVolunteer_api.repository.user.VolunteerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
+
 @Service
 public class VolunteerService {
 
@@ -17,4 +20,7 @@ public class VolunteerService {
     }
 
 
+    public Optional<Volunteer> findById(Integer volunteerId) {
+        return volunteerRepo.findById(volunteerId);
+    }
 }

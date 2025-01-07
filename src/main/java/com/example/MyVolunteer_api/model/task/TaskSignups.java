@@ -3,11 +3,18 @@ package com.example.MyVolunteer_api.model.task;
 import com.example.MyVolunteer_api.constants.SignUpStatus;
 import com.example.MyVolunteer_api.model.user.Volunteer;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "TaskSignups")
 public class TaskSignups {
