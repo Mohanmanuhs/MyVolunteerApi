@@ -1,5 +1,6 @@
 package com.example.MyVolunteer_api.controller;
 
+import com.example.MyVolunteer_api.dto.ChangePassDto;
 import com.example.MyVolunteer_api.dto.UserRequest;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
@@ -42,9 +43,9 @@ public class UserController {
     }
 
 
-    @PutMapping("/changePassword/{newPassword}")
-    public ResponseEntity<User> changePassword(@RequestBody User user,@PathVariable String newPassword) {
-        return ResponseEntity.ok(userService.changePassword(user, newPassword));
+    @PutMapping("/changePassword")
+    public ResponseEntity<User> changePassword(@RequestBody ChangePassDto changePassDto) {
+        return ResponseEntity.ok(userService.changePassword(changePassDto));
     }
 
     @PutMapping("/update")
@@ -58,9 +59,9 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteUser(@RequestBody User user) {
+    public ResponseEntity<String> deleteUser(@RequestBody User user) {
         userService.deleteUser(user);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("user deleted");
     }
 
 

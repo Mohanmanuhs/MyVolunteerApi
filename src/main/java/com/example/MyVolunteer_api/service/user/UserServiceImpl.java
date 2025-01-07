@@ -1,9 +1,12 @@
 package com.example.MyVolunteer_api.service.user;
 
+import com.example.MyVolunteer_api.dto.ChangePassDto;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.repository.user.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -18,10 +21,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User changePassword(User user, String newPassword) {
-        User user1 = findById(user.getId());
-        user1.setPassword(newPassword);
-        return userRepo.save(user1);
+    public User changePassword(ChangePassDto changePassDto) {
+        User user = userRepo.findByEmail(changePassDto.getEmail());
+        if (user == null || !Objects.equals(user.getPassword(), changePassDto.getOldPassword())) {
+            return null;
+        }
+        user.setPassword(changePassDto.getNewPassword());
+        return userRepo.save(user);
     }
 
     @Override
