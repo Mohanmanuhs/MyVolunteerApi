@@ -1,19 +1,26 @@
 package com.example.MyVolunteer_api.controller;
 
 import com.example.MyVolunteer_api.dto.ChangePassDto;
-import com.example.MyVolunteer_api.dto.UserRequest;
+import com.example.MyVolunteer_api.dto.UserLoginRequest;
+import com.example.MyVolunteer_api.dto.UserRegisterRequest;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.model.user.Volunteer;
+import com.example.MyVolunteer_api.service.JwtService;
 import com.example.MyVolunteer_api.service.user.OrganizationService;
 import com.example.MyVolunteer_api.service.user.UserService;
 import com.example.MyVolunteer_api.service.user.VolunteerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("user")
 public class UserController {
 
     @Autowired
@@ -25,11 +32,16 @@ public class UserController {
     @Autowired
     private VolunteerService volunteerService;
 
+    @Autowired
+    private JwtService jwtService;
 
-    @PostMapping("/create")
-    public ResponseEntity<User> createUser(@RequestBody UserRequest userRequest) {
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @PostMapping("register")
+    public ResponseEntity<User> createUser(@RequestBody UserRegisterRequest userRequest) {
         User user = null;
-        switch (userRequest.getRole()){
+        switch (userRequest.getRole()) {
             case ORGANIZATION -> {
                 Organization organization = getOrganization(userRequest);
                 user = organizationService.createOrganization(organization);
@@ -40,6 +52,26 @@ public class UserController {
             }
         }
         return ResponseEntity.ok(userService.createUser(user));
+    }
+
+    @PostMapping("login")
+    public String login(@RequestBody UserLoginRequest userRequest) {
+        System.out.println("login: " + userRequest);
+        System.out.println(new BCryptPasswordEncoder(12).encode(userRequest.getPassword()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(userRequest.getEmail(), userRequest.getPassword())
+            );
+            System.out.println("login: " + authentication);
+            if (authentication.isAuthenticated())
+                return jwtService.generateToken(userRequest.getEmail());
+        } catch (AuthenticationException ex) {
+            System.out.println("Authentication failed: " + ex.getMessage());
+            throw ex; // Re-throw the exception if needed
+        }
+
+        return "Login Failed";
+
     }
 
 
@@ -65,7 +97,7 @@ public class UserController {
     }
 
 
-    private static Volunteer getVolunteer(UserRequest userRequest) {
+    private static Volunteer getVolunteer(UserRegisterRequest userRequest) {
         Volunteer volunteer = new Volunteer();
         volunteer.setEmail(userRequest.getEmail());
         volunteer.setName(userRequest.getName());
@@ -77,7 +109,7 @@ public class UserController {
         return volunteer;
     }
 
-    private static Organization getOrganization(UserRequest userRequest) {
+    private static Organization getOrganization(UserRegisterRequest userRequest) {
         Organization organization = new Organization();
         organization.setEmail(userRequest.getEmail());
         organization.setName(userRequest.getName());

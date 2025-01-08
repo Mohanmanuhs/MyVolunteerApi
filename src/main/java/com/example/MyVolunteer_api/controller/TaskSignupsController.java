@@ -9,6 +9,7 @@ import com.example.MyVolunteer_api.model.user.Volunteer;
 import com.example.MyVolunteer_api.service.task.TaskSignupsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -24,9 +25,8 @@ public class TaskSignupsController {
 
 
     @GetMapping("/getAllForVol")
-    public ResponseEntity<List<TaskSignups>> getAllSignupsForVolunteer() {
+    public ResponseEntity<List<TaskSignups>> getAllSignupsForVolunteer(@AuthenticationPrincipal User user) {
 
-        User user = null; //get user by securityContext
         List<TaskSignups> list = Collections.emptyList();
         if(user.getRole() == Role.VOLUNTEER){
             list = taskSignupsService.getAllSignupsByVolunteer((Volunteer) user);
@@ -35,9 +35,8 @@ public class TaskSignupsController {
     }
 
     @GetMapping("/getAllForTask")
-    public ResponseEntity<List<TaskSignups>> getAllSignupsForTask(@RequestBody VolunteerOpportunities task) {
+    public ResponseEntity<List<TaskSignups>> getAllSignupsForTask(@RequestBody VolunteerOpportunities task,@AuthenticationPrincipal User user) {
 
-        User user = null; //get user by securityContext
         List<TaskSignups> list = Collections.emptyList();
         if(user.getRole() == Role.ORGANIZATION){
             list = taskSignupsService.getAllSignupsByTask(task);
@@ -46,9 +45,8 @@ public class TaskSignupsController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<TaskSignups> createTaskSignup(@RequestBody VolunteerOpportunities task) {
+    public ResponseEntity<TaskSignups> createTaskSignup(@RequestBody VolunteerOpportunities task,@AuthenticationPrincipal User user) {
 
-        User user = null; //get user by securityContext
         TaskSignups taskSignups = new TaskSignups();
         if(user.getRole() == Role.VOLUNTEER){
             taskSignups.setVolunteer((Volunteer) user);
@@ -68,9 +66,7 @@ public class TaskSignupsController {
     }
 
     @PutMapping("/cancel")
-    public ResponseEntity<String> cancelTaskSignup(@RequestBody TaskSignups taskSignups) {
-
-        User user = null; //get user by securityContext
+    public ResponseEntity<String> cancelTaskSignup(@RequestBody TaskSignups taskSignups,@AuthenticationPrincipal User user) {
 
         if(user.getRole() == Role.VOLUNTEER && taskSignups.getVolunteer() == user){
             taskSignups.setStatus(SignUpStatus.CANCELLED);

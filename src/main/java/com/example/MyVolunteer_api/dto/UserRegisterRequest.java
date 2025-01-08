@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequest {
+public class UserRegisterRequest {
     private String email;
     private String name;
     private String password;

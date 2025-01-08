@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,7 +39,7 @@ public class TaskRatingsController {
     public ResponseEntity<?> submitRatingByVolunteer(
             @PathVariable Integer taskId,
             @RequestBody VolunteerRatingRequest request,
-            @AuthenticationPrincipal Volunteer volunteer // Authenticated volunteer
+            @AuthenticationPrincipal Volunteer volunteer
     ) {
         try {
             VolunteerOpportunities task = volunteerOppService.findById(taskId)
