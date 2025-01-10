@@ -39,7 +39,7 @@ public class SecurityConfig {
 
         http.csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("user/register", "user/login")
+                        .requestMatchers("user/register", "user/login","user/changePassword")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

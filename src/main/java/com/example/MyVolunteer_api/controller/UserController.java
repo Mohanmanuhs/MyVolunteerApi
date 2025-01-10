@@ -3,6 +3,7 @@ package com.example.MyVolunteer_api.controller;
 import com.example.MyVolunteer_api.dto.ChangePassDto;
 import com.example.MyVolunteer_api.dto.UserLoginRequest;
 import com.example.MyVolunteer_api.dto.UserRegisterRequest;
+import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.model.user.Volunteer;
@@ -10,13 +11,15 @@ import com.example.MyVolunteer_api.service.JwtService;
 import com.example.MyVolunteer_api.service.user.OrganizationService;
 import com.example.MyVolunteer_api.service.user.UserService;
 import com.example.MyVolunteer_api.service.user.VolunteerService;
+import jakarta.persistence.EntityExistsException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,8 +42,12 @@ public class UserController {
     AuthenticationManager authenticationManager;
 
     @PostMapping("register")
-    public ResponseEntity<User> createUser(@RequestBody UserRegisterRequest userRequest) {
+    public ResponseEntity<User> register(@Valid @RequestBody UserRegisterRequest userRequest) {
         User user = null;
+        if (userService.findByEmail(userRequest.getEmail()) != null) {
+            throw new EntityExistsException("user already exists with this email");
+        }
+
         switch (userRequest.getRole()) {
             case ORGANIZATION -> {
                 Organization organization = getOrganization(userRequest);
@@ -55,28 +62,24 @@ public class UserController {
     }
 
     @PostMapping("login")
-    public String login(@RequestBody UserLoginRequest userRequest) {
-        System.out.println("login: " + userRequest);
-        System.out.println(new BCryptPasswordEncoder(12).encode(userRequest.getPassword()));
+    public String login(@Valid @RequestBody UserLoginRequest userRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userRequest.getEmail(), userRequest.getPassword())
             );
-            System.out.println("login: " + authentication);
-            if (authentication.isAuthenticated())
+
+            if (authentication.isAuthenticated()) {
                 return jwtService.generateToken(userRequest.getEmail());
+            }
         } catch (AuthenticationException ex) {
             System.out.println("Authentication failed: " + ex.getMessage());
-            throw ex; // Re-throw the exception if needed
+            throw ex;
         }
-
         return "Login Failed";
-
     }
 
-
     @PutMapping("/changePassword")
-    public ResponseEntity<User> changePassword(@RequestBody ChangePassDto changePassDto) {
+    public ResponseEntity<User> changePassword(@Valid @RequestBody ChangePassDto changePassDto) {
         return ResponseEntity.ok(userService.changePassword(changePassDto));
     }
 
@@ -85,14 +88,15 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
-    @GetMapping("/findById/{id}")
-    public ResponseEntity<User> findById(@PathVariable Integer id) {
-        return ResponseEntity.ok(userService.findById(id));
-    }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteUser(@RequestBody User user) {
-        userService.deleteUser(user);
+    public ResponseEntity<String> deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+
+        String email = userDetails.getUsername();
+
+        userService.deleteUserByEmail(email);
         return ResponseEntity.ok("user deleted");
     }
 
@@ -121,6 +125,5 @@ public class UserController {
         organization.setLocation(userRequest.getLocation());
         return organization;
     }
-
 
 }

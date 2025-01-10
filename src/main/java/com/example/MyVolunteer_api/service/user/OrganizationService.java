@@ -14,7 +14,6 @@ public class OrganizationService {
 
 
     public User createOrganization(Organization organization) {
-        System.out.println("org pass - "+organization.getPassword());
         return organizationRepo.save(organization);
     }
 

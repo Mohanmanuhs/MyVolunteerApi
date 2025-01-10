@@ -1,20 +1,25 @@
 package com.example.MyVolunteer_api.controller;
 
-import com.example.MyVolunteer_api.dto.OrganizationRatingRequest;
-import com.example.MyVolunteer_api.dto.VolunteerRatingRequest;
+import com.example.MyVolunteer_api.constants.Role;
+import com.example.MyVolunteer_api.dto.RatingRequest;
+import com.example.MyVolunteer_api.model.UserPrincipal;
+import com.example.MyVolunteer_api.model.task.TaskRatingId;
 import com.example.MyVolunteer_api.model.task.TaskRatings;
-import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
+import com.example.MyVolunteer_api.model.task.TaskSignups;
 import com.example.MyVolunteer_api.model.user.Organization;
+import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.model.user.Volunteer;
 import com.example.MyVolunteer_api.service.task.TaskRatingsService;
-import com.example.MyVolunteer_api.service.task.VolunteerOppService;
-import com.example.MyVolunteer_api.service.user.OrganizationService;
-import com.example.MyVolunteer_api.service.user.VolunteerService;
+import com.example.MyVolunteer_api.service.task.TaskSignupsService;
+import com.example.MyVolunteer_api.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,87 +31,152 @@ public class TaskRatingsController {
     private TaskRatingsService taskRatingsService;
 
     @Autowired
-    private VolunteerOppService volunteerOppService;
-
-
-    @Autowired
-    private VolunteerService volunteerService;
+    private TaskSignupsService taskSignupsService;
 
     @Autowired
-    private OrganizationService organizationService;
+    private UserService userService;
 
-    @PostMapping("/{taskId}/volunteer")
+
+
+    @PostMapping("/{signUpId}/volunteer")
     public ResponseEntity<?> submitRatingByVolunteer(
-            @PathVariable Integer taskId,
-            @RequestBody VolunteerRatingRequest request,
-            @AuthenticationPrincipal Volunteer volunteer
+            @PathVariable Integer signUpId,
+            @Valid @RequestBody RatingRequest request
     ) {
         try {
-            VolunteerOpportunities task = volunteerOppService.findById(taskId)
-                    .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+            String email = userDetails.getUsername();
 
-            // Check if the task belongs to the volunteer
-            if (!taskRatingsService.existsByTaskAndVolunteer(task, volunteer)) {
-                throw new IllegalAccessException("You are not authorized to rate this task.");
+            User user = userService.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.badRequest().body("User not found");
             }
 
-            // Find or create a TaskRatings entry
-            TaskRatings taskRating = taskRatingsService.findByTaskAndVolunteer(task, volunteer)
-                    .orElse(new TaskRatings());
+            TaskSignups taskSignups = taskSignupsService.findById(signUpId)
+                    .orElseThrow(() -> new EntityNotFoundException("signup id not found"));
 
-            taskRating.setTask(task);
-            taskRating.setVolunteer(volunteer);
-            taskRating.setOrganization(task.getCreatedBy());
-            taskRating.setRatingByVol(request.getRating());
-            taskRating.setFeedbackByVol(request.getFeedback());
+            if (user.getRole() == Role.VOLUNTEER) {
+                if (taskSignups.getVolunteer() != user) {
+                    throw new AuthorizationDeniedException("user is not associated with this signup");
+                }
 
-            taskRatingsService.updateRatings(taskRating);
+                if (taskSignups.getTask() == null) {
+                    throw new EntityNotFoundException("user can't rate this task");
+                }
 
-            return ResponseEntity.ok("Rating submitted successfully.");
+                TaskRatings taskRating = taskRatingsService.findByTaskAndVolunteer(taskSignups.getTask(), (Volunteer) user)
+                        .orElse(new TaskRatings());
+                TaskRatingId taskRatingId = new TaskRatingId();
+                taskRatingId.setTaskId(taskSignups.getTask().getTaskId());
+                taskRatingId.setVolunteerId(user.getId());
+                taskRatingId.setOrganizationId(taskSignups.getTask().getCreatedBy().getId());
+
+                taskRating.setId(taskRatingId);
+                taskRating.setTask(taskSignups.getTask());
+                taskRating.setVolunteer((Volunteer) user);
+                taskRating.setOrganization(taskSignups.getTask().getCreatedBy());
+                taskRating.setRatingByVol(request.getRating());
+                taskRating.setFeedbackByVol(request.getFeedback());
+                taskRatingsService.updateRatings(taskRating);
+                return ResponseEntity.ok("Rating submitted successfully.");
+            }
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error submitting rating.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage()+"Error submitting rating.");
         }
+        return ResponseEntity.ok("some error");
+
     }
 
-    @PostMapping("/{taskId}/organization")
+    @PostMapping("/{signUpId}/organization")
     public ResponseEntity<?> submitRatingByOrganization(
-            @PathVariable Integer taskId,
-            @RequestBody OrganizationRatingRequest request,
-            @AuthenticationPrincipal Organization organization // Authenticated organization
+            @PathVariable Integer signUpId,
+            @Valid @RequestBody RatingRequest request
     ) {
         try {
-            VolunteerOpportunities task = volunteerOppService.findById(taskId)
-                    .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+            String email = userDetails.getUsername();
 
-            // Check if the task belongs to the organization
-            if (!task.getCreatedBy().equals(organization)) {
-                throw new IllegalAccessException("You are not authorized to rate this task.");
+            User user = userService.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.badRequest().body("User not found");
             }
 
-            Volunteer volunteer = volunteerService.findById(request.getVolunteerId())
-                    .orElseThrow(() -> new EntityNotFoundException("Volunteer not found"));
+            TaskSignups taskSignups = taskSignupsService.findById(signUpId)
+                    .orElseThrow(() -> new EntityNotFoundException("signup id not found"));
 
-            // Find or create a TaskRatings entry
-            TaskRatings taskRating = taskRatingsService.findByTaskAndVolunteer(task, volunteer)
-                    .orElse(new TaskRatings());
+            if (user.getRole() == Role.ORGANIZATION) {
+                if (taskSignups.getTask() == null) {
+                    throw new EntityNotFoundException("organization can't rate this volunteer");
+                }
 
-            taskRating.setTask(task);
-            taskRating.setVolunteer(volunteer);
-            taskRating.setOrganization(organization);
-            taskRating.setRatingByOrg(request.getRating());
-            taskRating.setFeedbackByOrg(request.getFeedback());
+                if (taskSignups.getVolunteer() == null) {
+                    throw new EntityNotFoundException("organization can't rate this volunteer");
+                }
 
-            taskRatingsService.updateRatings(taskRating);
+                if (taskSignups.getTask().getCreatedBy() != user) {
+                    throw new AuthorizationDeniedException("organization is not associated with this signup");
+                }
 
-            return ResponseEntity.ok("Rating submitted successfully.");
+                TaskRatings taskRating = taskRatingsService.findByTaskAndVolunteer(taskSignups.getTask(), taskSignups.getVolunteer())
+                        .orElse(new TaskRatings());
+                TaskRatingId taskRatingId = new TaskRatingId();
+                taskRatingId.setTaskId(taskSignups.getTask().getTaskId());
+                taskRatingId.setVolunteerId(taskSignups.getVolunteer().getId());
+                taskRatingId.setOrganizationId(user.getId());
+
+                taskRating.setId(taskRatingId);
+                taskRating.setTask(taskSignups.getTask());
+                taskRating.setVolunteer(taskSignups.getVolunteer());
+                taskRating.setOrganization((Organization) user);
+                taskRating.setRatingByOrg(request.getRating());
+                taskRating.setFeedbackByOrg(request.getFeedback());
+                taskRatingsService.updateRatings(taskRating);
+                return ResponseEntity.ok("Rating submitted successfully.");
+            }
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error submitting rating.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage()+"Error submitting rating.");
         }
+        return ResponseEntity.ok("some error");
     }
 
+    @GetMapping("forVol")
+    public ResponseEntity<?> getAllRatingsForVol() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        if (user.getRole() == Role.VOLUNTEER) {
+            return ResponseEntity.ok(taskRatingsService.findByVolunteer((Volunteer)user));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("forOrg")
+    public ResponseEntity<?> getAllRatingsForOrg() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        if (user.getRole() == Role.ORGANIZATION) {
+            return ResponseEntity.ok(taskRatingsService.findByOrganization((Organization) user));
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
 }

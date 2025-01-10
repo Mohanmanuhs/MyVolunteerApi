@@ -1,6 +1,6 @@
 package com.example.MyVolunteer_api.dto;
 
-import com.example.MyVolunteer_api.constants.Role;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,12 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginDto {
+public class SignupForTaskRequest {
 
-    private String email;
-
-    private String password;
-
-    private Role role;
-
+    @NotNull(message = "taskId must not be null")
+    private Integer taskId;
 }

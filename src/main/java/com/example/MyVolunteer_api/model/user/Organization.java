@@ -25,7 +25,7 @@ public class Organization extends User {
     @Column(nullable = false)
     private String location;
 
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VolunteerOpportunities> volunteerOpportunities = new ArrayList<>();
 
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)

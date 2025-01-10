@@ -49,7 +49,7 @@ public class VolunteerOpportunities {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endsAt;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)
     private Organization createdBy;
 
