@@ -67,20 +67,56 @@ footer {
     </div>
     <main>
         <div class="container">
+
+
             <div class="mt-2 row justify-content-center">
                 <div class="col-md-8">
+                    <!-- Success Message -->
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        <span th:text="${successMessage}"></span>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <span th:text="${errorMessage}"></span>
+                    </div>
                     <div class="card">
+
                         <div class="header bg-primary text-center">
                             <h2>Volunteer Opportunity Details</h2>
                         </div>
                         <div class="card-body">
                             <h3 class="card-title text-primary">Title: <span th:text="${volOpp.title}"></span>
                             </h3>
-                            <div class="my-3">
-                                <button type="button" class="btn btn-success fs-5 py-2 px-3 border-2 rounded-1">
-                                    Register
-                                </button>
+
+                            <div sec:authorize="isAnonymous()">
+                                <div class="my-3">
+                                    <a th:href="@{/test/login}" type="button" class="btn btn-success fs-5 py-2 px-3 border-2 rounded-1">
+                                        Register
+                                    </a>
+                                </div>
                             </div>
+
+                            <div sec:authorize="isAuthenticated()">
+                                <div sec:authorize="hasRole('ROLE_VOLUNTEER')">
+                                    <div class="my-3">
+                                        <form th:if="${isRegistered}" th:action="@{/taskSignups/cancel}" method="post">
+                                            <input type="hidden" name="taskId" th:value="${volOpp.taskId}" />
+                                            <button type="submit" class="btn btn-danger fs-5 py-2 px-3 border-2 rounded-1">
+                                                Cancel Registration
+                                            </button>
+                                        </form>
+
+                                        <form th:if="${!isRegistered}" th:action="@{/taskSignups/create}" method="post">
+                                            <input type="hidden" name="taskId" th:value="${volOpp.taskId}" />
+                                            <button type="submit" class="btn btn-success fs-5 py-2 px-3 border-2 rounded-1">
+                                                Register
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
                             <p><strong>Organization : </strong> <span th:text="${volOpp.organizationName}">Green Earth Society</span>
                             </p>
                             <p><strong>Location : </strong> <span th:text="${volOpp.location}"></span></p>

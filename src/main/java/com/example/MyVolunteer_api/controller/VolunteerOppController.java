@@ -8,6 +8,8 @@ import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
+import com.example.MyVolunteer_api.model.user.Volunteer;
+import com.example.MyVolunteer_api.service.task.TaskSignupsService;
 import com.example.MyVolunteer_api.service.task.VolunteerOppService;
 import com.example.MyVolunteer_api.service.user.UserService;
 import jakarta.validation.Valid;
@@ -29,6 +31,9 @@ public class VolunteerOppController {
 
     @Autowired
     private VolunteerOppService volunteerOppService;
+
+    @Autowired
+    private TaskSignupsService taskSignupsService;
 
     @Autowired
     private UserService userService;
@@ -87,21 +92,27 @@ public class VolunteerOppController {
         model.addAttribute("volOpp", volunteerOpportunitiesDTO);
         if(uiName.equals("update")){
             model.addAttribute("statuses", OpportunityStatus.values());
+        }else{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = userService.findByEmail(email);
+            if (user != null && user.getRole()==Role.VOLUNTEER) {
+                boolean isReg = taskSignupsService.isVolRegForTask((Volunteer) user,volunteerOpportunities.get());
+                model.addAttribute("isRegistered", isReg);
+            }
         }
-        System.out.println("------------>" + volunteerOpportunitiesDTO);
         return uiName+"VolOpp";
     }
 
     @PostMapping("/create")
     public String createTask(@Valid @ModelAttribute VolOppSaveDto volOppSaveDto, RedirectAttributes redirectAttributes) {
-        System.out.println("volOppSaveDto: " + volOppSaveDto);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();
         User user = userService.findByEmail(email);
         if (user == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found");
-            System.out.println("user is null");
             return "redirect:/test/create"; // Redirect with error message
         }
         VolunteerOpportunities volunteerOpportunities = null;
@@ -114,14 +125,12 @@ public class VolunteerOppController {
         }
 
         assert volunteerOpportunities != null;
-        System.out.println("created");
         redirectAttributes.addFlashAttribute("successMessage", "Volunteer opportunity created successfully!");
         return "redirect:/test/create"; // Redirect with success message
     }
 
     @PostMapping("/update")
     public String updateTask(@Valid @ModelAttribute VolunteerOpportunitiesDTO volunteerOpportunitiesDTO, RedirectAttributes redirectAttributes) {
-        System.out.println("----------------------Im getting called--------------------------");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();

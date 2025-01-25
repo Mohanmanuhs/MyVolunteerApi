@@ -5,6 +5,7 @@ import com.example.MyVolunteer_api.constants.SignUpStatus;
 import com.example.MyVolunteer_api.dto.SignupForTaskDto;
 import com.example.MyVolunteer_api.dto.SignupForTaskRequest;
 import com.example.MyVolunteer_api.dto.SignupForVolDto;
+import com.example.MyVolunteer_api.dto.VolunteerOpportunitiesDTO;
 import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.task.TaskSignups;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
@@ -19,17 +20,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/taskSignups")
 public class TaskSignupsController {
-
-
+    
     @Autowired
     private TaskSignupsService taskSignupsService;
 
@@ -41,7 +44,7 @@ public class TaskSignupsController {
 
 
     @GetMapping("/getAllForVol")
-    public ResponseEntity<?> getAllSignupsForVolunteer() {
+    public String getAllSignupsForVolunteer(Model model,RedirectAttributes redirectAttributes) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -50,14 +53,38 @@ public class TaskSignupsController {
         User user = userService.findByEmail(email);
 
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            redirectAttributes.addFlashAttribute("errorMessage", "user not found");
+            return "redirect:/test/home";
         }
 
         List<SignupForVolDto> list = Collections.emptyList();
         if (user.getRole() == Role.VOLUNTEER) {
             list = taskSignupsService.getAllSignupsByVolunteer((Volunteer) user);
         }
-        return ResponseEntity.ok(list);
+        model.addAttribute("signups", list);
+        return "participationHistory";
+    }
+
+    @GetMapping("/getAllTaskForVol")
+    public String getAllTaskSignupsByVolunteer(Model model) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+
+        User user = userService.findByEmail(email);
+
+        if (user == null) {
+            return "User not found";
+        }
+
+        List<VolunteerOpportunitiesDTO> list = Collections.emptyList();
+        if (user.getRole() == Role.VOLUNTEER) {
+            list = taskSignupsService.getAllTaskSignupsByVolunteer((Volunteer) user);
+        }
+        model.addAttribute("volunteerOpportunities", list);
+        model.addAttribute("user", "Vol");
+        return "VolunteerOpp";
     }
 
     @GetMapping("/getAllForTask")
@@ -81,7 +108,7 @@ public class TaskSignupsController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createTaskSignup(@Valid @RequestBody SignupForTaskRequest taskRequest) {
+    public String createTaskSignup(@Valid @ModelAttribute SignupForTaskRequest taskRequest, RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -89,12 +116,17 @@ public class TaskSignupsController {
         User user = userService.findByEmail(email);
 
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            redirectAttributes.addFlashAttribute("errorMessage", "user not found");
+            return "redirect:/test/home";
         }
         VolunteerOpportunities task = volunteerOppService.findById(taskRequest.getTaskId()).orElseThrow();
 
         TaskSignups taskSignups = new TaskSignups();
         if (user.getRole() == Role.VOLUNTEER) {
+            Optional<TaskSignups> taskSignups1 = taskSignupsService.getSignupByVolunteerAndTask((Volunteer) user,task);
+            if (taskSignups1.isPresent()) {
+                taskSignups.setSignupId(taskSignups1.get().getSignupId());
+            }
             taskSignups.setVolunteer((Volunteer) user);
             taskSignups.setTask(task);
             taskSignups.setName(user.getName());
@@ -108,11 +140,12 @@ public class TaskSignupsController {
 
             taskSignups = taskSignupsService.createSignUp(taskSignups);
         }
-        return ResponseEntity.ok(taskSignupToDto(taskSignups));
+        redirectAttributes.addFlashAttribute("successMessage", "Successfully Registered");
+        return "redirect:/volunteerOpp/details/"+taskRequest.getTaskId();
     }
 
-    @PutMapping("/cancel")
-    public ResponseEntity<String> cancelTaskSignup(@Valid @RequestBody SignupForTaskRequest taskRequest) {
+    @PostMapping("/cancel")
+    public String cancelTaskSignup(@Valid @ModelAttribute SignupForTaskRequest taskRequest,RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -120,17 +153,18 @@ public class TaskSignupsController {
         User user = userService.findByEmail(email);
 
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            redirectAttributes.addFlashAttribute("errorMessage", "user not found");
+            return "redirect:/test/home";
         }
+        VolunteerOpportunities task = volunteerOppService.findById(taskRequest.getTaskId()).orElseThrow();
 
-        TaskSignups taskSignups = taskSignupsService.findById(taskRequest.getTaskId()).orElseThrow();
-
-        if (user.getRole() == Role.VOLUNTEER && taskSignups.getVolunteer() == user) {
-            taskSignups.setStatus(SignUpStatus.CANCELLED);
-            taskSignupsService.updateSignUp(taskSignups);
-            return ResponseEntity.ok("cancelled successfully");
+        if (user.getRole() == Role.VOLUNTEER) {
+            taskSignupsService.cancelSignUp((Volunteer) user,task);
+            redirectAttributes.addFlashAttribute("successMessage", "Successfully Canceled");
+            return "redirect:/volunteerOpp/details/"+taskRequest.getTaskId();
         }
-        return ResponseEntity.ok("error");
+        redirectAttributes.addFlashAttribute("errorMessage", "some error");
+        return "redirect:/volunteerOpp/details/"+taskRequest.getTaskId();
     }
 
     private SignupForTaskDto taskSignupToDto(TaskSignups taskSignups) {

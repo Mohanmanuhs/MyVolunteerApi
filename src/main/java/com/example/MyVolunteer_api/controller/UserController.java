@@ -118,6 +118,19 @@ public class UserController {
         return "/test/login";
     }
 
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt", null); // Set value to null
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // Keep this consistent with your login logic
+        cookie.setPath("/"); // Same path as used during login
+        cookie.setMaxAge(0); // Set max age to 0 to delete the cookie
+
+        response.addCookie(cookie);
+
+        return "redirect:/test/home";
+    }
+
     @PutMapping("/changePassword")
     public ResponseEntity<User> changePassword(@Valid @RequestBody ChangePassDto changePassDto) {
         return ResponseEntity.ok(userService.changePassword(changePassDto));

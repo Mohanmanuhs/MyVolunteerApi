@@ -20,13 +20,20 @@
                         <a th:href="@{/volunteerOpp/search}" class="nav-link">Volunteer Opportunity</a>
                     </li>
                     <li class="nav-item mx-2">
-                        <a href="#SignUps" class="nav-link">SignUps</a>
+                        <a th:href="@{/taskSignups/getAllTaskForVol}" class="nav-link">SignUps</a>
                     </li>
                     <li class="nav-item mx-2">
-                        <a href="#Participation_History" class="nav-link">Participation History</a>
+                        <a th:href="@{/taskSignups/getAllForVol}" class="nav-link">Participation History</a>
                     </li>
                     <li class="nav-item mx-2">
                         <a href="#Ratings" class="nav-link">Ratings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item ms-lg-3">
+                        <a th:href="@{/user/logout}" class="btn btn-danger py-2 px-3 border-2 rounded-1">
+                            Logout
+                        </a>
                     </li>
                 </ul>
             </div>
