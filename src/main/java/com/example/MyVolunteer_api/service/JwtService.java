@@ -21,10 +21,10 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private String secretKey;
+    private String secretKey = "TW9oYW5NYW51aHM5QDEyMzQ1Njc4TW9oYW5NYW51aHM5QDEyMzQ1Njc4";
 
     public JwtService() {
-        secretKey = generateSecretKey();
+        //secretKey = generateSecretKey();
     }
 
     public String generateSecretKey() {

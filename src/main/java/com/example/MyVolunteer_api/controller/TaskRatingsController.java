@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/taskRatings")
 public class TaskRatingsController {
 
-
     @Autowired
     private TaskRatingsService taskRatingsService;
 

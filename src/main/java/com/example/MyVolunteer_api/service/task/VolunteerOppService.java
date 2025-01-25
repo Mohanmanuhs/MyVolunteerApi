@@ -2,6 +2,7 @@ package com.example.MyVolunteer_api.service.task;
 
 import com.example.MyVolunteer_api.dto.VolunteerOpportunitiesDTO;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
+import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.repository.task.VolunteerOppRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,10 +33,101 @@ public class VolunteerOppService {
                 )).collect(Collectors.toList());
     }
 
+    public List<VolunteerOpportunitiesDTO> searchVolOppForOrg(
+            Organization organization,
+            String filterBy,
+            String searchText) {
+
+        // Fetch tasks created by the organization
+        List<VolunteerOpportunitiesDTO> tasks = getAllTaskForOrg(organization);
+
+        if (filterBy == null || searchText == null || searchText.isEmpty()) {
+            // If no filter is provided, return all tasks for the organization
+            return tasks;
+        }
+
+        // Apply filter based on the filterBy parameter
+        switch (filterBy.toLowerCase()) {
+            case "title":
+                tasks = tasks.stream()
+                        .filter(task -> task.getTitle() != null
+                                && task.getTitle().toLowerCase().contains(searchText.toLowerCase()))
+                        .collect(Collectors.toList());
+                break;
+
+            case "location":
+                tasks = tasks.stream()
+                        .filter(task -> task.getLocation() != null
+                                && task.getLocation().toLowerCase().contains(searchText.toLowerCase()))
+                        .collect(Collectors.toList());
+                break;
+
+            case "skills":
+                tasks = tasks.stream()
+                        .filter(task -> task.getSkillsRequired() != null
+                                && task.getSkillsRequired().stream()
+                                .anyMatch(skill -> skill.equalsIgnoreCase(searchText)))
+                        .collect(Collectors.toList());
+                break;
+
+            case "date":
+                tasks = tasks.stream()
+                        .filter(task -> task.getStartsAt() != null
+                                && task.getStartsAt().toString().contains(searchText))
+                        .collect(Collectors.toList());
+                break;
+
+            default:
+                // If filterBy is invalid, return all tasks without filtering
+                break;
+        }
+
+        // Map filtered tasks to DTOs
+        return tasks;
+    }
+
+
+    public List<VolunteerOpportunitiesDTO> getAllTaskForOrg(Organization organization) {
+        return volunteerOppRepo.findAllByCreatedBy(organization)
+                .stream().map(task -> new VolunteerOpportunitiesDTO(
+                        task.getTaskId(),
+                        task.getTitle(),
+                        task.getDescription(),
+                        task.getLocation(),
+                        task.getSkills_required(),
+                        task.getOrganization_name(),
+                        task.getDeadLineForReg(),
+                        task.getStartsAt(),
+                        task.getEndsAt(),task.getStatus()
+                )).collect(Collectors.toList());
+    }
+
     public VolunteerOpportunities createTask(VolunteerOpportunities volunteerOpportunities) {
 
         return volunteerOppRepo.save(volunteerOpportunities);
 
+    }
+
+    public List<VolunteerOpportunitiesDTO> searchVolOpp(String filterBy, String searchText) {
+        return (switch (filterBy.toLowerCase()) {
+            case "title" -> volunteerOppRepo.findByTitleContainingIgnoreCase(searchText);
+            case "location" -> volunteerOppRepo.findByLocationContainingIgnoreCase(searchText);
+            case "date" ->
+                // Assuming `date` refers to a specific field (e.g., startsAt or endsAt)
+                    volunteerOppRepo.findByStartsAtLike(searchText);
+            case "skills" -> volunteerOppRepo.findBySkills_Required(searchText);
+            default -> volunteerOppRepo.findAll();
+        }).stream().map(task -> new VolunteerOpportunitiesDTO(
+                task.getTaskId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getLocation(),
+                task.getSkills_required(),
+                task.getOrganization_name(),
+                task.getDeadLineForReg(),
+                task.getStartsAt(),
+                task.getEndsAt(),task.getStatus()
+        )).collect(Collectors.toList());
     }
 
 

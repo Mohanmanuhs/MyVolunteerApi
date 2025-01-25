@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+</head>
+<body>
+<div class="content-wrapper">
+
+    <div sec:authorize="isAuthenticated()">
+        <div sec:authorize="hasRole('ROLE_ORGANIZATION')">
+            <div th:replace="~{common/headerOrg :: header}">
+            </div>
+        </div>
+        <div sec:authorize="hasRole('ROLE_VOLUNTEER')">
+            <div th:replace="~{common/headerVol :: header}">
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="isAnonymous()">
+        <div th:replace="~{common/header :: header}">
+
+        </div>
+    </div>
+
+    <main>
+        <section class="p-2 mt-1 mt-md-5" id="learn">
+            <div class="container-fluid px-4">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col-md p-5">
+                        <h1 class="text-dark fw-semibold">
+                            WELCOME,
+                        </h1>
+                        <br/>
+                        <h2 class="fw-bold fs-1 mb-4">BUILDING STRONGER <br/> COMMUNITIES, TOGETHER</h2>
+                        <p class="lead">
+                            Welcome to "VolunteerBridge" , where compassion meets action! We
+                            believe that every individual has the power to make a difference in
+                            their community. Whether it s lending a helping hand to those in need,
+                            supporting local initiatives, or sharing your skills to uplift others, your
+                            efforts can create lasting change. Our platform connects passionate
+                            volunteers with impactful opportunities, fostering a spirit of
+                            togetherness and empowerment. Join us on this journey of hope and
+                            transformation because together, we can build stronger communities
+                            and inspire a brighter future for all</p>
+                        <div sec:authorize="isAnonymous()">
+                            <a th:href="@{/test/login}" class="btn btn-primary fw-semibold p-3 fs-3 mt-3 rounded-0">
+                                Get started
+                            </a>
+                        </div>
+
+                    </div>
+                    <div class="col-md">
+                        <img src="https://static1.squarespace.com/static/5a763c9412abd99bc623a086/t/63d81f7946f310771be65b1c/1723831050167/volunteer-652383_1280.jpg?format=1500w"
+                             alt="" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div th:replace="~{common/footer :: footer}">
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+</html>

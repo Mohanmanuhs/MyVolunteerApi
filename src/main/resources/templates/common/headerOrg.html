@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="header">
+    <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 fixed-top border-bottom shadow-sm">
+        <div class="container-fluid mx-3">
+            <a th:href="@{/test/home}" class="navbar-brand fs-5 fs-4 ms-3">VolunteerBridge</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navmenu">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item mx-2">
+                        <a th:href="@{/volunteerOpp/search}" class="nav-link">Volunteer Opportunity</a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a th:href="@{/volunteerOpp/creations}" class="nav-link">Creations</a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a th:href="@{/test/create}" class="nav-link">Create</a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a href="#Ratings" class="nav-link">Ratings</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+</body>
+</html>

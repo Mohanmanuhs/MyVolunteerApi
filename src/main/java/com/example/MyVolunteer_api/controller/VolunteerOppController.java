@@ -1,5 +1,6 @@
 package com.example.MyVolunteer_api.controller;
 
+import com.example.MyVolunteer_api.constants.OpportunityStatus;
 import com.example.MyVolunteer_api.constants.Role;
 import com.example.MyVolunteer_api.dto.VolOppSaveDto;
 import com.example.MyVolunteer_api.dto.VolunteerOpportunitiesDTO;
@@ -14,11 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
-@RestController
+@Controller
 @RequestMapping("/volunteerOpp")
 public class VolunteerOppController {
 
@@ -28,47 +33,102 @@ public class VolunteerOppController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/getAll")
-    public ResponseEntity<List<VolunteerOpportunitiesDTO>> getAllTask() {
-        List<VolunteerOpportunitiesDTO> list = volunteerOppService.getAllTask();
-        return ResponseEntity.ok(list);
+    @GetMapping("/search")
+    public String searchVolOpp(
+            @RequestParam(value = "filterBy", required = false) String filterBy,
+            @RequestParam(value = "searchText", required = false) String searchText,
+            Model model) {
+
+        List<VolunteerOpportunitiesDTO> searchResults;
+
+        // Call the service to get filtered results
+        if (filterBy != null && searchText != null && !searchText.isEmpty()) {
+            searchResults = volunteerOppService.searchVolOpp(filterBy, searchText);
+        } else {
+            searchResults = volunteerOppService.getAllTask();
+        }
+
+        model.addAttribute("volunteerOpportunities", searchResults);
+        model.addAttribute("user", "Vol");
+        return "VolunteerOpp";
     }
 
-
-    @PostMapping("/create")
-    public ResponseEntity<?> createTask(@Valid @RequestBody VolOppSaveDto volOppSaveDto) {
-
+    @GetMapping("/creations")
+    public String getAllTaskForOrg(@RequestParam(value = "filterBy", required = false) String filterBy,
+                                   @RequestParam(value = "searchText", required = false) String searchText,
+                                   Model model, RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();
-
         User user = userService.findByEmail(email);
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+            return "redirect:VolunteerOpp"; // Redirect with error message
+        }
+        if (user.getRole() == Role.ORGANIZATION) {
+            List<VolunteerOpportunitiesDTO> list = volunteerOppService.searchVolOppForOrg((Organization) user, filterBy, searchText);
+            model.addAttribute("volunteerOpportunities", list);
+            model.addAttribute("user", "Org");
+            return "VolunteerOpp";
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", "not a organization");
+        return "redirect:VolunteerOpp"; // Redirect with error message
+
+    }
+
+    @GetMapping("/{uiName}/{id}")
+    public String getTaskById(Model model, RedirectAttributes redirectAttributes,@PathVariable("uiName") String uiName,@PathVariable("id") Integer id) {
+        Optional<VolunteerOpportunities> volunteerOpportunities = volunteerOppService.findById(id);
+        if (volunteerOpportunities.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "not a organization");
+            return "redirect:/test/create";
+        }
+        VolunteerOpportunitiesDTO volunteerOpportunitiesDTO = volOppToVolOppDto(volunteerOpportunities.get(), new VolunteerOpportunitiesDTO());
+        model.addAttribute("volOpp", volunteerOpportunitiesDTO);
+        if(uiName.equals("update")){
+            model.addAttribute("statuses", OpportunityStatus.values());
+        }
+        System.out.println("------------>" + volunteerOpportunitiesDTO);
+        return uiName+"VolOpp";
+    }
+
+    @PostMapping("/create")
+    public String createTask(@Valid @ModelAttribute VolOppSaveDto volOppSaveDto, RedirectAttributes redirectAttributes) {
+        System.out.println("volOppSaveDto: " + volOppSaveDto);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+            System.out.println("user is null");
+            return "redirect:/test/create"; // Redirect with error message
         }
         VolunteerOpportunities volunteerOpportunities = null;
 
         if (user.getRole() == Role.ORGANIZATION) {
-            volunteerOpportunities = volOppDtoToVolOpp(volOppSaveDto,new VolunteerOpportunities());
+            volunteerOpportunities = volOppDtoToVolOpp(volOppSaveDto, new VolunteerOpportunities());
             volunteerOpportunities.setCreatedBy((Organization) user);
             volunteerOpportunities.setOrganization_name(user.getName());
             volunteerOpportunities = volunteerOppService.createTask(volunteerOpportunities);
         }
 
         assert volunteerOpportunities != null;
-        return ResponseEntity.ok(volOppToVolOppDto(volunteerOpportunities,new VolunteerOpportunitiesDTO()));
+        System.out.println("created");
+        redirectAttributes.addFlashAttribute("successMessage", "Volunteer opportunity created successfully!");
+        return "redirect:/test/create"; // Redirect with success message
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<?> updateTask(@Valid @RequestBody VolunteerOpportunitiesDTO volunteerOpportunitiesDTO) {
-
+    @PostMapping("/update")
+    public String updateTask(@Valid @ModelAttribute VolunteerOpportunitiesDTO volunteerOpportunitiesDTO, RedirectAttributes redirectAttributes) {
+        System.out.println("----------------------Im getting called--------------------------");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();
 
         User user = userService.findByEmail(email);
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            return "user not found";
         }
 
         VolunteerOpportunities volunteerOpportunities = volunteerOppService.findById(volunteerOpportunitiesDTO.getTaskId())
@@ -78,8 +138,8 @@ public class VolunteerOppController {
             volOppDtoToVolOpp(volunteerOpportunitiesDTO, volunteerOpportunities);
             volunteerOpportunities = volunteerOppService.updateTask(volunteerOpportunities);
         }
-
-        return ResponseEntity.ok(volOppToVolOppDto(volunteerOpportunities,new VolunteerOpportunitiesDTO()));
+        redirectAttributes.addFlashAttribute("successMessage", "Volunteer opportunity updated successfully!");
+        return "redirect:/volunteerOpp/update" + volunteerOpportunities.getTaskId();
     }
 
     @DeleteMapping("/delete/{id}")
@@ -103,7 +163,8 @@ public class VolunteerOppController {
         return ResponseEntity.ok("unAuthorized");
     }
 
-    private VolunteerOpportunities volOppDtoToVolOpp(VolOppSaveDto volOppSaveDto,VolunteerOpportunities volunteerOpportunities) {
+    private VolunteerOpportunities volOppDtoToVolOpp(VolOppSaveDto volOppSaveDto, VolunteerOpportunities
+            volunteerOpportunities) {
         volunteerOpportunities.setTitle(volOppSaveDto.getTitle());
         volunteerOpportunities.setDescription(volOppSaveDto.getDescription());
         volunteerOpportunities.setLocation(volOppSaveDto.getLocation());
@@ -115,7 +176,8 @@ public class VolunteerOppController {
         return volunteerOpportunities;
     }
 
-    private VolunteerOpportunities volOppDtoToVolOpp(VolunteerOpportunitiesDTO volOppSaveDto,VolunteerOpportunities volunteerOpportunities) {
+    private VolunteerOpportunities volOppDtoToVolOpp(VolunteerOpportunitiesDTO
+                                                             volOppSaveDto, VolunteerOpportunities volunteerOpportunities) {
         volunteerOpportunities.setTitle(volOppSaveDto.getTitle());
         volunteerOpportunities.setDescription(volOppSaveDto.getDescription());
         volunteerOpportunities.setLocation(volOppSaveDto.getLocation());
@@ -127,7 +189,8 @@ public class VolunteerOppController {
         return volunteerOpportunities;
     }
 
-    private VolunteerOpportunitiesDTO volOppToVolOppDto(VolunteerOpportunities volunteerOpportunities,VolunteerOpportunitiesDTO volunteerOpportunitiesDTO) {
+    private VolunteerOpportunitiesDTO volOppToVolOppDto(VolunteerOpportunities
+                                                                volunteerOpportunities, VolunteerOpportunitiesDTO volunteerOpportunitiesDTO) {
         volunteerOpportunitiesDTO.setTaskId(volunteerOpportunities.getTaskId());
         volunteerOpportunitiesDTO.setTitle(volunteerOpportunities.getTitle());
         volunteerOpportunitiesDTO.setDescription(volunteerOpportunities.getDescription());

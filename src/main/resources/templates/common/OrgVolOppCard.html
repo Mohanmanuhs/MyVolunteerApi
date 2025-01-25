@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:fragment="MyCard(title, description, taskId)">
+    <div class="col mb-4">
+        <div class="card" style="max-width:400px;">
+            <img src="https://www.sustainability.upenn.edu/sites/default/files/styles/event_image_758x758/public/2024-04/Earth%20Week%20Volunteer%20Event%20-%20links%20below%20v2.png?itok=7cO2BzC0"
+                 class="card-img-top" alt="Earth Week 2024">
+            <div class="card-body">
+                <h5 class="card-title fw-semibold" th:text="${title}">Earth Week 2024</h5>
+                <p class="card-text" th:text="${description}">Some quick example text to build on the card title and
+                    make up the bulk of the card's content.</p>
+                <a th:href="@{/volunteerOpp/details/{taskId}(taskId=${taskId})}" class="fs-5 fw-bold text-decoration-none">More Info <span><i
+                        class="bi bi-arrow-right-short fs-5"></i></span></a>
+
+                <div>
+                    <i class="bi bi-pencil-square text-primary me-3" style="cursor: pointer;"
+                       title="Edit" th:onclick="updateScreen([[${taskId}]])"></i>
+                    <i class="bi bi-trash text-danger" style="cursor: pointer;" title="Delete"
+                       th:onclick="confirmDelete([[${taskId}]])"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 import java.util.List;
@@ -28,11 +29,14 @@ public class VolOppSaveDto {
     private List<String> skillsRequired;
 
     @NotNull(message = "deadLineForReg may not be null")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private Date deadLineForReg;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @NotNull(message = "startsAt may not be null")
     private Date startsAt;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @NotNull(message = "endsAt may not be null")
     private Date endsAt;
 
