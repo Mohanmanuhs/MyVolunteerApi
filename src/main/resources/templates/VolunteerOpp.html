@@ -89,12 +89,12 @@
 
                 </div>
 
-                <div class="row mt-4 row-cols-1 row-cols-md-3 row-cols-lg-4 row-cols-sm-2 g-2 py-1">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 py-2">
                     <div th:if="${user} == 'Vol'" th:each="volopp : ${volunteerOpportunities}">
-                        <div th:replace="~{common/volOppCard :: card(title=${volopp.title}, description=${volopp.description}, taskId=${volopp.taskId})}"></div>
+                        <div th:replace="~{common/volOppCard :: card(volopp=${volopp})}"></div>
                     </div>
                     <div th:if="${user} == 'Org'" th:each="volopp : ${volunteerOpportunities}">
-                        <div th:replace="~{common/OrgVolOppCard :: MyCard(title=${volopp.title}, description=${volopp.description}, taskId=${volopp.taskId})}"></div>
+                        <div th:replace="~{common/OrgVolOppCard :: MyCard(volopp=${volopp})}"></div>
                     </div>
                 </div>
 

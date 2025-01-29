@@ -2,7 +2,10 @@ package com.example.MyVolunteer_api.controller;
 
 import com.example.MyVolunteer_api.constants.OpportunityStatus;
 import com.example.MyVolunteer_api.constants.Role;
+import com.example.MyVolunteer_api.constants.SignUpStatus;
+import com.example.MyVolunteer_api.dto.SignupOrgDto;
 import com.example.MyVolunteer_api.dto.VolOppSaveDto;
+import com.example.MyVolunteer_api.dto.VolRatingsDto;
 import com.example.MyVolunteer_api.dto.VolunteerOpportunitiesDTO;
 import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
@@ -82,7 +85,7 @@ public class VolunteerOppController {
     }
 
     @GetMapping("/{uiName}/{id}")
-    public String getTaskById(Model model, RedirectAttributes redirectAttributes,@PathVariable("uiName") String uiName,@PathVariable("id") Integer id) {
+    public String getTaskById(Model model, RedirectAttributes redirectAttributes, @PathVariable("uiName") String uiName, @PathVariable("id") Integer id) {
         Optional<VolunteerOpportunities> volunteerOpportunities = volunteerOppService.findById(id);
         if (volunteerOpportunities.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "not a organization");
@@ -90,19 +93,38 @@ public class VolunteerOppController {
         }
         VolunteerOpportunitiesDTO volunteerOpportunitiesDTO = volOppToVolOppDto(volunteerOpportunities.get(), new VolunteerOpportunitiesDTO());
         model.addAttribute("volOpp", volunteerOpportunitiesDTO);
-        if(uiName.equals("update")){
+        if (uiName.equals("update")) {
             model.addAttribute("statuses", OpportunityStatus.values());
-        }else{
+        } else {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
             String email = userDetails.getUsername();
             User user = userService.findByEmail(email);
-            if (user != null && user.getRole()==Role.VOLUNTEER) {
-                boolean isReg = taskSignupsService.isVolRegForTask((Volunteer) user,volunteerOpportunities.get());
+            if (user != null && user.getRole() == Role.VOLUNTEER) {
+                boolean isReg = taskSignupsService.isVolRegForTask((Volunteer) user, volunteerOpportunities.get());
                 model.addAttribute("isRegistered", isReg);
+            } else if (user != null && user.getRole() == Role.ORGANIZATION && volunteerOpportunities.get().getCreatedBy() == user) {
+                model.addAttribute("signups", volunteerOpportunities.get().getTaskSignups().stream().filter(
+                        signup -> signup.getStatus() == SignUpStatus.COMPLETED
+                ).map(
+                        signup -> new SignupOrgDto(
+                                signup.getSignupId(),
+                                signup.getName(),
+                                signup.getEmail()
+                        )
+                ));
+                model.addAttribute("user","authOrg");
+                model.addAttribute("ratings", volunteerOpportunities.get().getRatings().stream().map(
+                        taskRatings -> new VolRatingsDto(
+                                taskRatings.getRatingByVol(),
+                                taskRatings.getVolunteer().getName(),
+                                taskRatings.getFeedbackByVol()
+                        )
+                ));
+
             }
         }
-        return uiName+"VolOpp";
+        return uiName + "VolOpp";
     }
 
     @PostMapping("/create")

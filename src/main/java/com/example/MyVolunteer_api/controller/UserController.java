@@ -2,9 +2,7 @@ package com.example.MyVolunteer_api.controller;
 
 import com.example.MyVolunteer_api.constants.Gender;
 import com.example.MyVolunteer_api.constants.Role;
-import com.example.MyVolunteer_api.dto.ChangePassDto;
-import com.example.MyVolunteer_api.dto.UserLoginRequest;
-import com.example.MyVolunteer_api.dto.UserRegisterRequest;
+import com.example.MyVolunteer_api.dto.*;
 import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
@@ -27,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("user")
@@ -136,20 +135,63 @@ public class UserController {
         return ResponseEntity.ok(userService.changePassword(changePassDto));
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(user));
+    @PostMapping("/updateOrg")
+    public String updateOrg(@Valid @ModelAttribute UpdateOrgAccDto updateOrgAccDto, RedirectAttributes redirectAttributes) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+
+        String email = userDetails.getUsername();
+        User user = userService.findByEmail(email);
+        if (user.getRole() != Role.ORGANIZATION) {
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+            return "redirect:/test/home";
+        }
+        Organization organization = (Organization) user;
+        organization.setName(updateOrgAccDto.getName());
+        organization.setGstNumber(updateOrgAccDto.getGstNumber());
+        organization.setLocation(updateOrgAccDto.getLocation());
+        organization.setPhone(updateOrgAccDto.getPhone());
+        organizationService.createOrganization(organization);
+        redirectAttributes.addFlashAttribute("successMessage", "Account updated successfully!");
+        return "redirect:/test/orgAccUpdate";
+    }
+
+    @PostMapping("/updateVol")
+    public String updateVol(@Valid @ModelAttribute UpdateVolAccDto updateVolAccDto, RedirectAttributes redirectAttributes) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+
+        String email = userDetails.getUsername();
+        User user = userService.findByEmail(email);
+        if (user.getRole() != Role.VOLUNTEER) {
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+            return "redirect:/test/home";
+        }
+        Volunteer volunteer = (Volunteer) user;
+        volunteer.setName(updateVolAccDto.getName());
+        volunteer.setPhone(updateVolAccDto.getPhone());
+        volunteer.setSkills(updateVolAccDto.getSkills());
+        volunteerService.createVolunteer(volunteer);
+        redirectAttributes.addFlashAttribute("successMessage", "Account updated successfully!");
+        return "redirect:/test/volAccUpdate";
     }
 
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteUser() {
+    public ResponseEntity<String> deleteUser(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
 
         String email = userDetails.getUsername();
 
         userService.deleteUserByEmail(email);
+        Cookie cookie = new Cookie("jwt", null); // Set value to null
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // Keep this consistent with your login logic
+        cookie.setPath("/"); // Same path as used during login
+        cookie.setMaxAge(0); // Set max age to 0 to delete the cookie
+
+        response.addCookie(cookie);
         return ResponseEntity.ok("user deleted");
     }
 

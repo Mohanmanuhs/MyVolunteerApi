@@ -20,9 +20,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequestMapping("/taskRatings")
 public class TaskRatingsController {
 
@@ -40,8 +42,9 @@ public class TaskRatingsController {
     @PostMapping("/{signUpId}/volunteer")
     public ResponseEntity<?> submitRatingByVolunteer(
             @PathVariable Integer signUpId,
-            @Valid @RequestBody RatingRequest request
+            @Valid @ModelAttribute RatingRequest request
     ) {
+
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -92,8 +95,9 @@ public class TaskRatingsController {
     @PostMapping("/{signUpId}/organization")
     public ResponseEntity<?> submitRatingByOrganization(
             @PathVariable Integer signUpId,
-            @Valid @RequestBody RatingRequest request
+            @Valid @ModelAttribute RatingRequest request
     ) {
+        System.out.println("feedback"+ request.getFeedback());
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -156,7 +160,7 @@ public class TaskRatingsController {
         }
 
         if (user.getRole() == Role.VOLUNTEER) {
-            return ResponseEntity.ok(taskRatingsService.findByVolunteer((Volunteer)user));
+            return ResponseEntity.ok(taskRatingsService.findByVolunteer((Volunteer)user,"for"));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -171,11 +175,18 @@ public class TaskRatingsController {
         if (user == null) {
             return ResponseEntity.badRequest().body("User not found");
         }
-
         if (user.getRole() == Role.ORGANIZATION) {
-            return ResponseEntity.ok(taskRatingsService.findByOrganization((Organization) user));
+            return ResponseEntity.ok(taskRatingsService.findByOrganization((Organization) user,"for"));
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("ratings")
+    public String getRatings(Model model) {
+        model.addAttribute("top10Vol",taskRatingsService.top10Volunteers());
+        model.addAttribute("top10Org", taskRatingsService.top10Organizations());
+
+        return "ratingsPage";
     }
 
 }

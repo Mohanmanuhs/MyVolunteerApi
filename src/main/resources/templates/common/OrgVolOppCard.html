@@ -7,24 +7,40 @@
 </head>
 <body>
 
-<div th:fragment="MyCard(title, description, taskId)">
-    <div class="col mb-4">
-        <div class="card" style="max-width:400px;">
-            <img src="https://www.sustainability.upenn.edu/sites/default/files/styles/event_image_758x758/public/2024-04/Earth%20Week%20Volunteer%20Event%20-%20links%20below%20v2.png?itok=7cO2BzC0"
-                 class="card-img-top" alt="Earth Week 2024">
-            <div class="card-body">
-                <h5 class="card-title fw-semibold" th:text="${title}">Earth Week 2024</h5>
-                <p class="card-text" th:text="${description}">Some quick example text to build on the card title and
-                    make up the bulk of the card's content.</p>
-                <a th:href="@{/volunteerOpp/details/{taskId}(taskId=${taskId})}" class="fs-5 fw-bold text-decoration-none">More Info <span><i
-                        class="bi bi-arrow-right-short fs-5"></i></span></a>
+<div th:fragment="MyCard(volopp)">
 
-                <div>
-                    <i class="bi bi-pencil-square text-primary me-3" style="cursor: pointer;"
-                       title="Edit" th:onclick="updateScreen([[${taskId}]])"></i>
-                    <i class="bi bi-trash text-danger" style="cursor: pointer;" title="Delete"
-                       th:onclick="confirmDelete([[${taskId}]])"></i>
+    <div class="col">
+        <div class="card" style="min-width:300px;">
+            <div class="card-body">
+                <h5 class="card-title text-primary" th:text="${volopp.title}">Food Drive for Homeless</h5>
+                <p class="card-text text-muted">
+                    <i class="bi bi-info-circle me-1"></i> <span th:text="${volopp.description}">
+                    Help us distribute food and essentials to those in
+                    need.
+                </span>
+                </p>
+                <p><i class="bi bi-geo-alt me-1"></i> <strong>Location : </strong> <span
+                        th:text="${volopp.location}"> </span></p>
+                <p><i class="bi bi-building me-1"></i> <strong>Organization : </strong> <span
+                        th:text="${volopp.organizationName}"> </span></p>
+                <p><i class="bi bi-calendar-check me-1"></i> <strong>Registration Deadline : </strong> <span
+                        th:text="${volopp.deadLineForReg}"> </span></p>
+                <p><i class="bi bi-clock me-1"></i> <strong>Starts At : </strong><span
+                        th:text="${volopp.startsAt}"> </span></p>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span th:text="${volopp.status}" class="badge bg-success badge-status"></span>
+                    <div class="ms-3">
+                        <i class="bi bi-pencil-square fs-4 text-primary me-2" style="cursor: pointer;"
+                           title="Edit" th:onclick="updateScreen([[${volopp.taskId}]])"></i>
+                        <i class="bi bi-trash text-danger fs-4" style="cursor: pointer;"
+                           title="Delete" th:onclick="confirmDelete([[${volopp.taskId}]])"></i>
+                    </div>
                 </div>
+
+            </div>
+            <div class="card-footer">
+                <a th:href="@{/volunteerOpp/details/{taskId}(taskId=${volopp.taskId})}"
+                   class="btn btn-primary w-100 text-decoration-none">View Details</a>
             </div>
         </div>
     </div>

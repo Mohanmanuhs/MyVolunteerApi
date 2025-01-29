@@ -1,8 +1,4 @@
-body::before {
-    display: block;
-    content: "";
-    height: 60px;
-}
+
 
 html,
 body {
@@ -17,11 +13,13 @@ body {
     min-height: 100%;
 }
 
-        main {
-            flex-grow: 1;
-            display: flex; /* Make it a flex container */
-            justify-content: center; /* Center horizontally */
-        }
+main {
+    margin-top:60px;
+    flex-grow: 1;
+    display: flex; /* Make it a flex container */
+    justify-content: center;  Center horizontally
+}
+
 footer {
     background-color: #343a40;
     color: #f8f9fa;

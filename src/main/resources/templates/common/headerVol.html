@@ -26,7 +26,7 @@
                         <a th:href="@{/taskSignups/getAllForVol}" class="nav-link">Participation History</a>
                     </li>
                     <li class="nav-item mx-2">
-                        <a href="#Ratings" class="nav-link">Ratings</a>
+                        <a th:href="@{/taskRatings/ratings}" class="nav-link">Ratings</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
@@ -34,6 +34,37 @@
                         <a th:href="@{/user/logout}" class="btn btn-danger py-2 px-3 border-2 rounded-1">
                             Logout
                         </a>
+                    </li>
+                    <li class="nav-item dropdown ms-lg-3">
+                        <!-- Profile Icon -->
+                        <a href="#"
+                           class="text-decoration-none rounded-circle bg-primary text-white d-flex justify-content-center align-items-center"
+                           id="profileDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false"
+                           style="width: 45px; height: 45px;">
+                            <span style="font-size: 25px;">V</span>
+                        </a>
+
+                        <!-- Dropdown Menu -->
+                        <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                            <li>
+                                <a class="dropdown-item" th:href="@{/test/profile}">
+                                    <i class="bi bi-person me-2"></i> Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" th:href="@{/test/volAccUpdate}">
+                                    <i class="bi bi-pencil me-2"></i> Update Account
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" th:href="@{/test/accDelete}">
+                                    <i class="bi bi-trash me-2"></i> Delete Account
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>

@@ -7,7 +7,9 @@ import com.example.MyVolunteer_api.dto.UserLoginRequest;
 import com.example.MyVolunteer_api.dto.UserRegisterRequest;
 import com.example.MyVolunteer_api.dto.VolOppSaveDto;
 import com.example.MyVolunteer_api.model.UserPrincipal;
+import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
+import com.example.MyVolunteer_api.model.user.Volunteer;
 import com.example.MyVolunteer_api.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -65,6 +67,81 @@ public class HomeController {
         return "createVolOpp";
     }
 
+    @GetMapping("/accDelete")
+    public String accDelete() {
+        return "accDelete";
+    }
+
+    @GetMapping("/orgAccUpdate")
+    public String orgAccUpdate(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
+        if (principal instanceof UserPrincipal) {
+            UserPrincipal userDetails = (UserPrincipal) principal;
+            email = userDetails.getUsername();
+        } else if (principal instanceof String) {
+            email = (String) principal; // For cases like anonymous or basic auth
+        }
+
+        User user = (email != null) ? userService.findByEmail(email) : null;
+        if (user == null || user.getRole()!= Role.ORGANIZATION) {
+            return "redirect:/test/home";
+        }
+        Organization organization = (Organization) user;
+        model.addAttribute("organization", organization);
+        return "orgUpdateAcc";
+    }
+
+    @GetMapping("/volAccUpdate")
+    public String volAccUpdate(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
+        if (principal instanceof UserPrincipal) {
+            UserPrincipal userDetails = (UserPrincipal) principal;
+            email = userDetails.getUsername();
+        } else if (principal instanceof String) {
+            email = (String) principal; // For cases like anonymous or basic auth
+        }
+
+        User user = (email != null) ? userService.findByEmail(email) : null;
+        if (user == null || user.getRole()!= Role.VOLUNTEER) {
+            return "redirect:/test/home";
+        }
+        Volunteer volunteer = (Volunteer) user;
+        model.addAttribute("volunteer", volunteer);
+        return "volUpdateAcc";
+    }
+
+    @GetMapping("/profile")
+    public String getProfile(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
+        if (principal instanceof UserPrincipal) {
+            UserPrincipal userDetails = (UserPrincipal) principal;
+            email = userDetails.getUsername();
+        } else if (principal instanceof String) {
+            email = (String) principal; // For cases like anonymous or basic auth
+        }
+
+        User user = (email != null) ? userService.findByEmail(email) : null;
+        if (user == null) {
+            return "redirect:/test/home";
+        }
+        if (user.getRole() == Role.ORGANIZATION) {
+            Organization organization = (Organization) user;
+            model.addAttribute("user", organization);
+        } else if (user.getRole() == Role.VOLUNTEER) {
+            Volunteer volunteer = (Volunteer) user;
+            model.addAttribute("user", volunteer);
+        }
+        return "profile";
+    }
 
 
 }

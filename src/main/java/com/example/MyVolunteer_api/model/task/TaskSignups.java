@@ -57,4 +57,11 @@ public class TaskSignups {
     @Temporal(TemporalType.TIMESTAMP)
     private Date completionDate;
 
+    public SignUpStatus getStatus() {
+        if (status==SignUpStatus.TAKEN && new Date().after(completionDate)) {
+            setStatus(SignUpStatus.COMPLETED);
+        }
+        return status;
+    }
+
 }

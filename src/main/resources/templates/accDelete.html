@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>VolunteerBridge</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            /* Max width to make it responsive */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            /* Adjust this value for more or less spacing */
+        }
+
+        label {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="content-wrapper">
+    <div sec:authorize="isAuthenticated()">
+        <div sec:authorize="hasRole('ROLE_ORGANIZATION')">
+            <div th:replace="~{common/headerOrg :: header}">
+            </div>
+        </div>
+        <div sec:authorize="hasRole('ROLE_VOLUNTEER')">
+            <div th:replace="~{common/headerVol :: header}">
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="isAnonymous()">
+        <div th:replace="~{common/header :: header}">
+
+        </div>
+    </div>
+    <!-- Confirmation Popup -->
+    <div class="modal" id="deleteConfirmationPopup" style="display: none;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button class="btn-close" onclick="closePopup()" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closePopup()" type="button">Cancel</button>
+                    <button class="btn btn-danger" onclick="deleteCard()" type="button">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="container my-auto">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="form-container">
+                        <h2>Delete Account</h2>
+                        <p>Warning: Deleting your account will remove all your data. This action cannot be undone.</p>
+                        <button class="btn btn-danger" onclick="confirmDelete()">Confirm Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div th:replace="~{common/footer :: footer}">
+
+    </div>
+</div>
+
+<script>
+    function confirmDelete() {
+        // Show the popup
+        const popup = document.getElementById('deleteConfirmationPopup');
+        popup.style.display = 'block';
+    }
+
+    function closePopup() {
+        // Hide the popup
+        const popup = document.getElementById('deleteConfirmationPopup');
+        popup.style.display = 'none';
+    }
+
+    function deleteCard() {
+        fetch(`/user/delete`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Account deleted successfully!');
+                        const url = `/test/home`;
+                        window.location.href = url;
+                    } else {
+                        alert('Failed to delete the Account. Try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting Account:', error);
+                    alert('An error occurred.');
+                });
+            closePopup();
+        }
+</script>
+</body>
+
+</html>

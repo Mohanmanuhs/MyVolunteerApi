@@ -67,4 +67,12 @@ public class VolunteerOpportunities {
     private List<TaskRatings> ratings = new ArrayList<>();
 
 
+    public OpportunityStatus getStatus() {
+        if (new Date().after(deadLineForReg) && new Date().after(endsAt)) {
+            setStatus(OpportunityStatus.COMPLETED);
+        } else if (new Date().after(deadLineForReg)) {
+            setStatus(OpportunityStatus.CLOSED);
+        }
+        return status;
+    }
 }

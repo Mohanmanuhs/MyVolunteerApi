@@ -88,7 +88,7 @@ public class TaskSignupsController {
     }
 
     @GetMapping("/getAllForTask")
-    public ResponseEntity<?> getAllSignupsForTask(@Valid  @RequestBody SignupForTaskRequest taskRequest) {
+    public ResponseEntity<?> getAllSignupsForTask(@Valid @RequestBody SignupForTaskRequest taskRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
         String email = userDetails.getUsername();

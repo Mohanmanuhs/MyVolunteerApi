@@ -40,8 +40,7 @@ public class TaskSignupsService {
                 signup.getOrganizedBy(),
                 signup.getAssignedDate(),
                 signup.getCompletionDate(),
-                signup.getStatus()
-        )).collect(Collectors.toList());
+                signup.getStatus())).collect(Collectors.toList());
     }
 
     public boolean isVolRegForTask(Volunteer volunteer, VolunteerOpportunities volunteerOpportunities) {
