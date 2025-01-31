@@ -59,6 +59,10 @@
                             <p th:text="${error}"></p>
                         </div>
 
+                        <div th:if="${message}" class="alert alert-success" role="alert">
+                            <p th:text="${message}"></p>
+                        </div>
+
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
                             <input type="email" class="form-control" id="email" name="email"

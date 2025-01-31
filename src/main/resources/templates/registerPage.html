@@ -90,6 +90,10 @@
                         <p th:text="${error}"></p>
                     </div>
 
+                    <div th:if="${message}" class="alert alert-success" role="alert">
+                        <p th:text="${message}"></p>
+                    </div>
+
                     <form th:action="@{/user/register}" th:object="${userRequest}" method="post">
                         <div class="row">
                             <div class="col-sm">

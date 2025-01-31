@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.InputMismatchException;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,6 +24,14 @@ public class UserServiceImpl implements UserService {
     public User createUser(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
         return userRepo.save(user);
+    }
+
+    @Override
+    public String generateVerificationToken(User user) {
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        userRepo.save(user);
+        return token;
     }
 
     @Override

@@ -28,6 +28,11 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private boolean verified = false;
+
+    @Column(unique = true)
+    private String verificationToken;
+
     @Column
     private String phone;
 

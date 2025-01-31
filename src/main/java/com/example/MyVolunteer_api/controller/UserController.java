@@ -7,6 +7,7 @@ import com.example.MyVolunteer_api.model.UserPrincipal;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.model.user.Volunteer;
+import com.example.MyVolunteer_api.service.EmailService;
 import com.example.MyVolunteer_api.service.JwtService;
 import com.example.MyVolunteer_api.service.user.OrganizationService;
 import com.example.MyVolunteer_api.service.user.UserService;
@@ -44,6 +45,9 @@ public class UserController {
     private JwtService jwtService;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
@@ -79,8 +83,16 @@ public class UserController {
                     user = volunteerService.createVolunteer(volunteer);
                 }
             }
-            userService.createUser(user);
-            return login(new UserLoginRequest(userRequest.getEmail(),userRequest.getPassword()),response,model);
+            user.setVerified(false); // Set user as unverified
+            String token = userService.generateVerificationToken(user);
+            userService.createUser(user); // Save user with token
+
+            // Send verification email
+            emailService.sendVerificationEmail(user.getEmail(), token);
+
+            model.addAttribute("message", "Registration successful. Please check your email to verify your account.");
+            model.addAttribute("userRequest", new UserLoginRequest());
+            return "loginPage";
         } catch (Exception e) {
             model.addAttribute("userRequest", new UserRegisterRequest());
             model.addAttribute("roles", Role.values());
@@ -94,6 +106,13 @@ public class UserController {
     public String login(@Valid @ModelAttribute("userRequest") UserLoginRequest userRequest,
                         HttpServletResponse response,
                         Model model) {
+        User user = userService.findByEmail(userRequest.getEmail());
+
+        if (user == null || !user.isVerified()) {
+            model.addAttribute("error", "Please verify your email before logging in.");
+            return "loginPage"; // Prevent login for unverified users
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userRequest.getEmail(), userRequest.getPassword())

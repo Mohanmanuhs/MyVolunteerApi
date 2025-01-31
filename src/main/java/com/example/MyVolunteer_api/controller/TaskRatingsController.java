@@ -38,7 +38,6 @@ public class TaskRatingsController {
     private UserService userService;
 
 
-
     @PostMapping("/{signUpId}/volunteer")
     public ResponseEntity<?> submitRatingByVolunteer(
             @PathVariable Integer signUpId,

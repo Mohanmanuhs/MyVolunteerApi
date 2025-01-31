@@ -15,4 +15,7 @@ public interface UserRepo extends JpaRepository<User,Integer> {
     @Transactional
     @Modifying
     void deleteByEmail(String email);
+
+    User findByVerificationToken(String token);
+
 }

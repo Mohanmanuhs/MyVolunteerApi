@@ -18,4 +18,6 @@ public interface UserService {
     User findByEmail(String email);
 
     void deleteUserByEmail(String email);
+
+    String generateVerificationToken(User user);
 }
