@@ -104,7 +104,7 @@ footer {
         <section class="pe-3" id="learn">
             <div class="container-fluid px-5">
                 <div class="form-container">
-                    <h2 class="mt-2 mb-4">Create Volunteer Opportunity</h2>
+                    <h2 class="mt-2 mb-4">Update Volunteer Opportunity</h2>
                     <!-- Success Message -->
                     <div th:if="${successMessage}" class="alert alert-success" role="alert">
                         <span th:text="${successMessage}"></span>
@@ -116,7 +116,7 @@ footer {
                     </div>
 
 
-                    <form th:action="@{/volunteerOpp/update}" th:object="${volOpp}" method="post">
+                    <form th:action="@{/volunteerOpp/updateVolOpp}" th:object="${volOpp}" method="post">
                         <div class="row">
                             <input type="hidden" th:field="*{taskId}" id="taskId" name="taskId">
 

@@ -45,14 +45,29 @@
 </head>
 <body>
 <div class="content-wrapper">
-    <div th:replace="~{common/header :: header}"></div>
+    <div sec:authorize="isAuthenticated()">
+        <div sec:authorize="hasRole('ROLE_ORGANIZATION')">
+            <div th:replace="~{common/headerOrg :: header}">
+            </div>
+        </div>
+        <div sec:authorize="hasRole('ROLE_VOLUNTEER')">
+            <div th:replace="~{common/headerVol :: header}">
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="isAnonymous()">
+        <div th:replace="~{common/header :: header}">
+
+        </div>
+    </div>
 
     <main>
         <section class="pe-3" id="learn">
             <div class="container-fluid px-4">
                 <div class="form-container">
-                    <form th:action="@{/user/login}" th:object="${userRequest}" method="post">
-                        <h3 class="text-center mb-4">Login</h3>
+                    <form th:action="@{/user/changePassword}" th:object="${userRequest}" method="post">
+                        <h3 class="text-center mb-4">Change Password</h3>
 
                         <!-- Error Message -->
                         <div th:if="${error}" class="alert alert-danger" role="alert">
@@ -69,15 +84,17 @@
                                    th:field="*{email}" placeholder="Enter your email" required>
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password"
-                                   th:field="*{password}" placeholder="Enter your password" required>
+                            <label for="oldPassword" class="form-label">Old Password</label>
+                            <input type="password" class="form-control" id="oldPassword" name="password"
+                                   th:field="*{oldPassword}" placeholder="Enter your old password" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="newPassword" name="password"
+                                   th:field="*{newPassword}" placeholder="Enter your new password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Change Password</button>
                     </form>
-                    <p class="text-center mt-3">
-                        <a th:href="@{/test/register}" class="text-decoration-none">Don't have an account? Register</a>
-                    </p>
                 </div>
             </div>
         </section>

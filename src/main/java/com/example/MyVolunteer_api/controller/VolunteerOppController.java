@@ -89,7 +89,7 @@ public class VolunteerOppController {
         Optional<VolunteerOpportunities> volunteerOpportunities = volunteerOppService.findById(id);
         if (volunteerOpportunities.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "not a organization");
-            return "redirect:/test/create";
+            return "redirect:/test/home";
         }
         VolunteerOpportunitiesDTO volunteerOpportunitiesDTO = volOppToVolOppDto(volunteerOpportunities.get(), new VolunteerOpportunitiesDTO());
         model.addAttribute("volOpp", volunteerOpportunitiesDTO);
@@ -127,7 +127,7 @@ public class VolunteerOppController {
         return uiName + "VolOpp";
     }
 
-    @PostMapping("/create")
+    @PostMapping("create")
     public String createTask(@Valid @ModelAttribute VolOppSaveDto volOppSaveDto, RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -135,7 +135,7 @@ public class VolunteerOppController {
         User user = userService.findByEmail(email);
         if (user == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found");
-            return "redirect:/test/create"; // Redirect with error message
+            return "redirect:/test/home"; // Redirect with error message
         }
         VolunteerOpportunities volunteerOpportunities = null;
 
@@ -151,7 +151,7 @@ public class VolunteerOppController {
         return "redirect:/test/create"; // Redirect with success message
     }
 
-    @PostMapping("/update")
+    @PostMapping("update")
     public String updateTask(@Valid @ModelAttribute VolunteerOpportunitiesDTO volunteerOpportunitiesDTO, RedirectAttributes redirectAttributes) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -159,7 +159,8 @@ public class VolunteerOppController {
 
         User user = userService.findByEmail(email);
         if (user == null) {
-            return "user not found";
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+            return "redirect:/test/home"; // Redirect with error message
         }
 
         VolunteerOpportunities volunteerOpportunities = volunteerOppService.findById(volunteerOpportunitiesDTO.getTaskId())
@@ -170,7 +171,7 @@ public class VolunteerOppController {
             volunteerOpportunities = volunteerOppService.updateTask(volunteerOpportunities);
         }
         redirectAttributes.addFlashAttribute("successMessage", "Volunteer opportunity updated successfully!");
-        return "redirect:/volunteerOpp/update" + volunteerOpportunities.getTaskId();
+        return "redirect:/volunteerOpp/update/" + volunteerOpportunities.getTaskId();
     }
 
     @DeleteMapping("/delete/{id}")

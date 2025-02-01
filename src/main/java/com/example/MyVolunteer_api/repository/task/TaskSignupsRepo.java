@@ -24,6 +24,8 @@ public interface TaskSignupsRepo extends JpaRepository<TaskSignups,Integer> {
 
     List<TaskSignups> findByTask(VolunteerOpportunities task);
 
+
+
     @Query("SELECT COUNT(ts) > 0 FROM TaskSignups ts WHERE ts.volunteer = :volunteer AND ts.task = :task AND ts.status = :status")
     boolean existsByVolunteerAndTaskAndStatus(@Param("volunteer") Volunteer volunteer,
                                               @Param("task") VolunteerOpportunities task,

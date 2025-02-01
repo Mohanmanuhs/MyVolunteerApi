@@ -33,6 +33,15 @@
     <main>
         <section class="p-2 mt-1 mt-md-5" id="learn">
             <div class="container-fluid px-4">
+                <!-- Success Message -->
+                <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                    <span th:text="${successMessage}"></span>
+                </div>
+
+                <!-- Error Message -->
+                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                </div>
                 <div class="row align-items-center justify-content-between">
                     <div class="col-md p-5">
                         <h1 class="text-dark fw-semibold">

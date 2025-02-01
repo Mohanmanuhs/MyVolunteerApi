@@ -32,34 +32,58 @@ public class TaskRatingsService {
     }
 
     public List<String> top10Organizations() {
-        return taskRatingsRepo.findTop10OrganizationsByRating(PageRequest.of(0,10)).stream().map(User::getName).collect(Collectors.toList());
+        return taskRatingsRepo.findTop10OrganizationsByRating(PageRequest.of(0, 10)).stream().map(User::getName).collect(Collectors.toList());
     }
 
     public void updateRatings(TaskRatings taskRating) {
         taskRatingsRepo.save(taskRating);
     }
 
-    public List<VolRatingsDto> findByVolunteer(Volunteer user,String filter) {
-        return taskRatingsRepo.findByVolunteer(user).stream()
-                .filter(taskRatings -> (Objects.equals(filter, "for"))? taskRatings.getRatingByOrg() != null:taskRatings.getRatingByVol()!=null)
-                .map(taskRatings ->
-                        new VolRatingsDto(
-                                taskRatings.getRatingByOrg(),
-                                taskRatings.getTask().getOrganization_name(),
-                                taskRatings.getFeedbackByOrg()
-                        )
-                ).collect(Collectors.toList());
+    public List<VolRatingsDto> findByVolunteer(Volunteer user, String filter) {
+        if (Objects.equals(filter, "for")) {
+            return taskRatingsRepo.findByVolunteer(user).stream()
+                    .filter(taskRatings -> taskRatings.getRatingByOrg() != null)
+                    .map(taskRatings ->
+                            new VolRatingsDto(
+                                    taskRatings.getRatingByOrg(),
+                                    taskRatings.getOrganization().getName(),
+                                    taskRatings.getFeedbackByOrg()
+                            )
+                    ).collect(Collectors.toList());
+        }else{
+            return taskRatingsRepo.findByVolunteer(user).stream()
+                    .filter(taskRatings -> taskRatings.getRatingByVol() != null)
+                    .map(taskRatings ->
+                            new VolRatingsDto(
+                                    taskRatings.getRatingByVol(),
+                                    taskRatings.getOrganization().getName(),
+                                    taskRatings.getFeedbackByVol()
+                            )
+                    ).collect(Collectors.toList());
+        }
     }
 
-    public List<VolRatingsDto> findByOrganization(Organization user,String filter) {
-        return taskRatingsRepo.findByOrganization(user).stream()
-                .filter(taskRatings -> (Objects.equals(filter, "for"))? taskRatings.getRatingByVol() != null:taskRatings.getRatingByOrg()!=null)
-                .map(taskRatings ->
-                        new VolRatingsDto(
-                                taskRatings.getRatingByVol(),
-                                taskRatings.getVolunteer().getName(),
-                                taskRatings.getFeedbackByVol()
-                        )
-                ).collect(Collectors.toList());
+    public List<VolRatingsDto> findByOrganization(Organization user, String filter) {
+        if (Objects.equals(filter, "for")) {
+            return taskRatingsRepo.findByOrganization(user).stream()
+                    .filter(taskRatings -> taskRatings.getRatingByVol() != null)
+                    .map(taskRatings ->
+                            new VolRatingsDto(
+                                    taskRatings.getRatingByVol(),
+                                    taskRatings.getVolunteer().getName(),
+                                    taskRatings.getFeedbackByVol()
+                            )
+                    ).collect(Collectors.toList());
+        }else{
+            return taskRatingsRepo.findByOrganization(user).stream()
+                    .filter(taskRatings -> taskRatings.getRatingByOrg() != null)
+                    .map(taskRatings ->
+                            new VolRatingsDto(
+                                    taskRatings.getRatingByOrg(),
+                                    taskRatings.getVolunteer().getName(),
+                                    taskRatings.getFeedbackByOrg()
+                            )
+                    ).collect(Collectors.toList());
+        }
     }
 }

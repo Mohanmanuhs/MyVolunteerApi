@@ -3,6 +3,7 @@ package com.example.MyVolunteer_api.controller;
 import com.example.MyVolunteer_api.constants.Gender;
 import com.example.MyVolunteer_api.constants.OpportunityStatus;
 import com.example.MyVolunteer_api.constants.Role;
+import com.example.MyVolunteer_api.dto.ChangePassDto;
 import com.example.MyVolunteer_api.dto.UserLoginRequest;
 import com.example.MyVolunteer_api.dto.UserRegisterRequest;
 import com.example.MyVolunteer_api.dto.VolOppSaveDto;
@@ -48,6 +49,12 @@ public class HomeController {
     public String loginRequestPage(Model model) {
         model.addAttribute("userRequest", new UserLoginRequest());
         return "loginPage";
+    }
+
+    @GetMapping("/changePassword")
+    public String changePasswordPage(Model model) {
+        model.addAttribute("userRequest", new ChangePassDto());
+        return "changePassPage";
     }
 
     @GetMapping("/register")

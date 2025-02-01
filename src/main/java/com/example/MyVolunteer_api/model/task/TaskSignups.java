@@ -59,7 +59,7 @@ public class TaskSignups {
 
     public SignUpStatus getStatus() {
         if (status==SignUpStatus.TAKEN && new Date().after(completionDate)) {
-            setStatus(SignUpStatus.COMPLETED);
+            status=SignUpStatus.COMPLETED;
         }
         return status;
     }

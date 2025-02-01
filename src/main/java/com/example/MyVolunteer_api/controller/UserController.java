@@ -22,11 +22,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.InputMismatchException;
 
 @Controller
 @RequestMapping("user")
@@ -51,7 +54,7 @@ public class UserController {
     AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
-    public String register(@Valid @ModelAttribute("userRequest") UserRegisterRequest userRequest,HttpServletResponse response,
+    public String register(@Valid @ModelAttribute("userRequest") UserRegisterRequest userRequest, HttpServletResponse response,
                            BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("userRequest", new UserRegisterRequest());
@@ -149,9 +152,19 @@ public class UserController {
         return "redirect:/test/home";
     }
 
-    @PutMapping("/changePassword")
-    public ResponseEntity<User> changePassword(@Valid @RequestBody ChangePassDto changePassDto) {
-        return ResponseEntity.ok(userService.changePassword(changePassDto));
+    @PostMapping("/changePassword")
+    public String changePassword(@Valid @ModelAttribute ChangePassDto changePassDto, RedirectAttributes redirectAttributes) {
+        try {
+            userService.changePassword(changePassDto);
+            redirectAttributes.addFlashAttribute("message", "Successfully changed password, you can login now");
+            return "redirect:/test/login";
+        } catch (UsernameNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", "User not found with this email");
+            return "redirect:/test/changePassword";
+        } catch (InputMismatchException e) {
+            redirectAttributes.addFlashAttribute("error", "Passwords do not match");
+            return "redirect:/test/changePassword";
+        }
     }
 
     @PostMapping("/updateOrg")

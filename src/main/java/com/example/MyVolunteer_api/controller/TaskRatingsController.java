@@ -15,7 +15,6 @@ import com.example.MyVolunteer_api.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
@@ -23,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/taskRatings")
@@ -39,9 +39,9 @@ public class TaskRatingsController {
 
 
     @PostMapping("/{signUpId}/volunteer")
-    public ResponseEntity<?> submitRatingByVolunteer(
+    public String submitRatingByVolunteer(
             @PathVariable Integer signUpId,
-            @Valid @ModelAttribute RatingRequest request
+            @Valid @ModelAttribute RatingRequest request, RedirectAttributes redirectAttributes
     ) {
 
         try {
@@ -51,7 +51,8 @@ public class TaskRatingsController {
 
             User user = userService.findByEmail(email);
             if (user == null) {
-                return ResponseEntity.badRequest().body("User not found");
+                redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+                return "redirect:/test/home"; // Redirect with error message
             }
 
             TaskSignups taskSignups = taskSignupsService.findById(signUpId)
@@ -80,23 +81,27 @@ public class TaskRatingsController {
                 taskRating.setRatingByVol(request.getRating());
                 taskRating.setFeedbackByVol(request.getFeedback());
                 taskRatingsService.updateRatings(taskRating);
-                return ResponseEntity.ok("Rating submitted successfully.");
+                redirectAttributes.addFlashAttribute("successMessage", "Rating submitted successfully.");
+                return "redirect:/taskSignups/getAllForVol";
             }
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Entity not found");
+            return "redirect:/test/home"; // Redirect with error message
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage()+"Error submitting rating.");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/test/home"; // Redirect with error message
         }
-        return ResponseEntity.ok("some error");
+        redirectAttributes.addFlashAttribute("errorMessage", "some error");
+        return "redirect:/test/home"; // Redirect with error message
 
     }
 
     @PostMapping("/{signUpId}/organization")
-    public ResponseEntity<?> submitRatingByOrganization(
+    public String submitRatingByOrganization(
             @PathVariable Integer signUpId,
-            @Valid @ModelAttribute RatingRequest request
+            @Valid @ModelAttribute RatingRequest request,RedirectAttributes redirectAttributes
     ) {
-        System.out.println("feedback"+ request.getFeedback());
+        System.out.println("feedback" + request.getFeedback());
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
@@ -104,7 +109,8 @@ public class TaskRatingsController {
 
             User user = userService.findByEmail(email);
             if (user == null) {
-                return ResponseEntity.badRequest().body("User not found");
+                redirectAttributes.addFlashAttribute("errorMessage", "User not found");
+                return "redirect:/test/home"; // Redirect with error message
             }
 
             TaskSignups taskSignups = taskSignupsService.findById(signUpId)
@@ -137,14 +143,18 @@ public class TaskRatingsController {
                 taskRating.setRatingByOrg(request.getRating());
                 taskRating.setFeedbackByOrg(request.getFeedback());
                 taskRatingsService.updateRatings(taskRating);
-                return ResponseEntity.ok("Rating submitted successfully.");
+                redirectAttributes.addFlashAttribute("successMessage", "Rating submitted successfully.");
+                return "redirect:/volunteerOpp/details/"+taskSignups.getTask().getTaskId();
             }
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Entity not found");
+            return "redirect:/test/home"; // Redirect with error message
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage()+"Error submitting rating.");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/test/home"; // Redirect with error message
         }
-        return ResponseEntity.ok("some error");
+        redirectAttributes.addFlashAttribute("errorMessage", "some error");
+        return "redirect:/test/home"; // Redirect with error message
     }
 
     @GetMapping("forVol")
@@ -159,7 +169,7 @@ public class TaskRatingsController {
         }
 
         if (user.getRole() == Role.VOLUNTEER) {
-            return ResponseEntity.ok(taskRatingsService.findByVolunteer((Volunteer)user,"for"));
+            return ResponseEntity.ok(taskRatingsService.findByVolunteer((Volunteer) user, "for"));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -175,16 +185,30 @@ public class TaskRatingsController {
             return ResponseEntity.badRequest().body("User not found");
         }
         if (user.getRole() == Role.ORGANIZATION) {
-            return ResponseEntity.ok(taskRatingsService.findByOrganization((Organization) user,"for"));
+            return ResponseEntity.ok(taskRatingsService.findByOrganization((Organization) user, "for"));
         }
         return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("ratings")
     public String getRatings(Model model) {
-        model.addAttribute("top10Vol",taskRatingsService.top10Volunteers());
-        model.addAttribute("top10Org", taskRatingsService.top10Organizations());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+        String email = userDetails.getUsername();
 
+        User user = userService.findByEmail(email);
+        if (user != null) {
+            if (user.getRole() == Role.ORGANIZATION) {
+                model.addAttribute("ratingsTaken", taskRatingsService.findByOrganization((Organization)user,"for"));
+                model.addAttribute("ratingsGiven", taskRatingsService.findByOrganization((Organization)user,"given"));
+            } else if (user.getRole() == Role.VOLUNTEER) {
+                model.addAttribute("ratingsTaken", taskRatingsService.findByVolunteer((Volunteer) user,"for"));
+                model.addAttribute("ratingsGiven", taskRatingsService.findByVolunteer((Volunteer) user,"given"));
+            }
+        }
+
+        model.addAttribute("top10Vol", taskRatingsService.top10Volunteers());
+        model.addAttribute("top10Org", taskRatingsService.top10Organizations());
         return "ratingsPage";
     }
 
