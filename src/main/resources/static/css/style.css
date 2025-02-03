@@ -15,7 +15,7 @@ main {
     margin-top:60px;
     flex-grow: 1;
     display: flex; /* Make it a flex container */
-    justify-content: center;  Center horizontally
+    justify-content: center;
 }
 
 footer {

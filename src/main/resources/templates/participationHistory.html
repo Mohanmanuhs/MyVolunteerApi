@@ -10,6 +10,11 @@
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
+    <style>
+        textarea{
+            min-width: 300px;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,12 +40,12 @@
         <div class="container">
             <h2 class="h2 mt-5 mb-3">Participation History</h2>
             <!-- Success Message -->
-            <div th:if="${successMessage}" class="alert alert-success" role="alert">
+            <div class="alert alert-success" role="alert" th:if="${successMessage}">
                 <span th:text="${successMessage}"></span>
             </div>
 
             <!-- Error Message -->
-            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <div class="alert alert-danger" role="alert" th:if="${errorMessage}">
                 <span th:text="${errorMessage}"></span>
             </div>
             <div class="table-responsive">
@@ -65,7 +70,8 @@
                         <td th:text="${signup.status}">In Progress</td>
 
                         <td class="text-center" th:if="${signup.status.toString()}=='COMPLETED'">
-                            <form id="form-${signup.signUpId}" method="post" th:action="@{/taskRatings/{signUpId}/volunteer(signUpId=${signup.signUpId})}">
+                            <form id="form-${signup.signUpId}" method="post"
+                                  th:action="@{/taskRatings/{signUpId}/volunteer(signUpId=${signup.signUpId})}">
                                 <div class="rating-container">
                                     <i class="bi bi-star" data-index="1"></i>
                                     <i class="bi bi-star" data-index="2"></i>
@@ -73,12 +79,12 @@
                                     <i class="bi bi-star" data-index="4"></i>
                                     <i class="bi bi-star" data-index="5"></i>
                                 </div>
-                                <input id="rating-value-${signup.signUpId}" name="rating" type="hidden" value="0" />
+                                <input id="rating-value-${signup.signUpId}" name="rating" type="hidden" value="0"/>
 
                                 <textarea
                                         class="form-control mt-2"
-                                        name="feedback"
                                         id="feedback"
+                                        name="feedback"
                                         placeholder="Enter your feedback"></textarea>
 
                                 <button class="btn btn-primary mt-1" type="submit">Submit</button>
@@ -97,40 +103,39 @@
 <script crossorigin="anonymous"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 
-document.addEventListener("click", function (event) {
-    if (event.target.classList.contains("bi-star")) {
-        const star = event.target;
-        const container = star.closest(".rating-container");
-        const form = container.closest("form"); // Find the parent form
-        const hiddenInput = form.querySelector('input[name="rating"]'); // Select input by name
-        const ratingValue = parseInt(star.getAttribute("data-index"));
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("bi-star")) {
+            const star = event.target;
+            const container = star.closest(".rating-container");
+            const form = container.closest("form"); // Find the parent form
+            const hiddenInput = form.querySelector('input[name="rating"]'); // Select input by name
+            const ratingValue = parseInt(star.getAttribute("data-index"));
 
-        // Update the hidden input value
-        hiddenInput.value = ratingValue;
+            // Update the hidden input value
+            hiddenInput.value = ratingValue;
 
-        // Highlight the stars
-        highlightStars(container, ratingValue);
-    }
-});
-
-function highlightStars(container, ratingValue) {
-    const stars = container.querySelectorAll(".bi-star, .bi-star-fill");
-
-    stars.forEach((star, index) => {
-        if (index < ratingValue) {
-            star.classList.remove("bi-star");
-            star.classList.add("bi-star-fill");
-            star.style.color = "gold";
-        } else {
-            star.classList.remove("bi-star-fill");
-            star.classList.add("bi-star");
-            star.style.color = "gray";
+            // Highlight the stars
+            highlightStars(container, ratingValue);
         }
     });
-}
+
+    function highlightStars(container, ratingValue) {
+        const stars = container.querySelectorAll(".bi-star, .bi-star-fill");
+
+        stars.forEach((star, index) => {
+            if (index < ratingValue) {
+                star.classList.remove("bi-star");
+                star.classList.add("bi-star-fill");
+                star.style.color = "gold";
+            } else {
+                star.classList.remove("bi-star-fill");
+                star.classList.add("bi-star");
+                star.style.color = "gray";
+            }
+        });
+    }
 
 
 </script>
