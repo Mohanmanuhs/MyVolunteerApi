@@ -5,6 +5,8 @@ import com.example.MyVolunteer_api.constants.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -30,8 +32,8 @@ public class User {
 
     private boolean verified = false;
 
-    @Column(unique = true)
-    private String verificationToken;
+    private String otp;
+    private LocalDateTime otpExpiry;
 
     @Column
     private String phone;

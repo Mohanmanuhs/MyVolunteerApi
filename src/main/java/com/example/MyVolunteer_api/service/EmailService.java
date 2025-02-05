@@ -10,14 +10,15 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendVerificationEmail(String to, String token) {
-        String verificationUrl = "http://localhost:8080/api/auth/verify?token=" + token;
+    public void sendOtpEmail(String to, String otp) {
+        String subject = "Your OTP Code";
+        String message = "Your OTP code is: " + otp + ". It will expire in 5 minutes.";
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("Verify Your Email");
-        message.setText("Click the link to verify your email: " + verificationUrl);
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(to);
+        email.setSubject(subject);
+        email.setText(message);
 
-        mailSender.send(message);
+        mailSender.send(email);
     }
 }

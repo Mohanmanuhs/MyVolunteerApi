@@ -6,9 +6,11 @@ import com.example.MyVolunteer_api.repository.user.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("api/auth")
@@ -18,21 +20,33 @@ public class AuthController {
     private UserRepo userRepository;
 
 
-    @GetMapping("/verify")
-    public String verifyEmail(@RequestParam String token, Model model) {
-        User user = userRepository.findByVerificationToken(token);
+    @PostMapping("/verify-otp")
+    public String verifyOtp(@RequestParam String email, @RequestParam String otp, Model model) {
+        User user = userRepository.findByEmail(email);
 
         if (user == null) {
-            model.addAttribute("error", "Invalid verification token.");
-            model.addAttribute("userRequest", new UserLoginRequest());
-            return "loginPage";
+            model.addAttribute("error", "Invalid email.");
+            return "verifyOtpPage";
+        }
+
+        if (user.getOtp() == null || !user.getOtp().equals(otp)) {
+            model.addAttribute("error", "Invalid OTP.");
+            model.addAttribute("email", user.getEmail());
+            return "verifyOtpPage";
+        }
+
+        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            model.addAttribute("error", "OTP expired. Please request a new OTP.");
+            model.addAttribute("email", user.getEmail());
+            return "verifyOtpPage";
         }
 
         user.setVerified(true);
-        user.setVerificationToken(null);
+        user.setOtp(null);
+        user.setOtpExpiry(null);
         userRepository.save(user);
 
-        model.addAttribute("message", "Email verified successfully. You can now log in.");
+        model.addAttribute("message", "OTP verified successfully. You can now log in.");
         model.addAttribute("userRequest", new UserLoginRequest());
         return "loginPage";
     }

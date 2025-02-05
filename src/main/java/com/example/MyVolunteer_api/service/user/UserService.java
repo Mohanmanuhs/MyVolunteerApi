@@ -7,6 +7,9 @@ public interface UserService {
 
     User createUser(User user);
 
+    // Generate OTP, save it to the user, and send via email
+    void generateAndSendOTP(User user);
+
     User changePassword(ChangePassDto changePassDto);
 
     User updateUser(User user);
@@ -18,6 +21,4 @@ public interface UserService {
     User findByEmail(String email);
 
     void deleteUserByEmail(String email);
-
-    String generateVerificationToken(User user);
 }

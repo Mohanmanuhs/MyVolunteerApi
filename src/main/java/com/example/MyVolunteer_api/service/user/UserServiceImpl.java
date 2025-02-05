@@ -3,19 +3,24 @@ package com.example.MyVolunteer_api.service.user;
 import com.example.MyVolunteer_api.dto.ChangePassDto;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.repository.user.UserRepo;
+import com.example.MyVolunteer_api.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.InputMismatchException;
-import java.util.UUID;
+import java.util.Random;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private EmailService emailService;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -26,12 +31,21 @@ public class UserServiceImpl implements UserService {
         return userRepo.save(user);
     }
 
+    // Generate a 6-digit OTP
+    private String generateOTP() {
+        Random random = new Random();
+        return String.format("%06d", random.nextInt(1000000));
+    }
+
+    // Generate OTP, save it to the user, and send via email
     @Override
-    public String generateVerificationToken(User user) {
-        String token = UUID.randomUUID().toString();
-        user.setVerificationToken(token);
+    public void generateAndSendOTP(User user) {
+        String otp = generateOTP();
+        user.setOtp(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5)); // OTP valid for 5 minutes
         userRepo.save(user);
-        return token;
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
     @Override
