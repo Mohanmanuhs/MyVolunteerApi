@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerBridge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+
+        body::before {
+    display: block;
+    content: "";
+    height: 60px;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+        main {
+            flex-grow: 1;
+            display: flex; /* Make it a flex container */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+        }
+footer {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+
+     .form-container {
+              background-color: white;
+              padding: 30px;
+              box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+              border-radius: 8px;
+              width: 100%;
+              max-width: 600px;
+              /* Max width to make it responsive */
+          }
+      .skill-list {
+          margin-top: 10px;
+      }
+
+      .form-group {
+          margin-bottom: 20px;
+          /* Adjust this value for more or less spacing */
+      }
+
+      label{
+          margin-bottom: 5px;
+      }
+
+      .skill-item {
+          display: inline-block;
+          margin-right: 10px;
+          background-color: #007bff;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 20px;
+          margin-bottom: 5px;
+      }
+
+      .remove-btn {
+          margin-left: 10px;
+          cursor: pointer;
+          color: red;
+      }
+    </style>
+</head>
+
+<body>
+
+<div class="content-wrapper">
+    <div sec:authorize="isAuthenticated()">
+        <div sec:authorize="hasRole('ROLE_ORGANIZATION')">
+            <div th:replace="~{common/headerOrg :: header}">
+            </div>
+        </div>
+        <div sec:authorize="hasRole('ROLE_VOLUNTEER')">
+            <div th:replace="~{common/headerVol :: header}">
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="isAnonymous()">
+        <div th:replace="~{common/header :: header}">
+
+        </div>
+    </div>
+
+    <main>
+        <section class="pe-3" id="learn">
+            <div class="container-fluid px-5">
+                <div class="form-container">
+                    <h2 class="mt-2 mb-4">Update Volunteer Opportunity</h2>
+                    <div th:if="${updateErrors}">
+                        <ul>
+                            <li th:each="error : ${updateErrors}" th:text="${error.defaultMessage}" style="color:red"></li>
+                        </ul>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        <span th:text="${successMessage}"></span>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+
+                    <form th:action="@{/volunteerOpp/update}" th:object="${volOpp}" method="post">
+                        <div class="row">
+                            <input type="hidden" th:field="*{taskId}" id="taskId" name="taskId">
+
+                            <div class="col-sm">
+                                <!-- Title -->
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" th:field="*{title}"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <!-- Deadline for Registration -->
+                                <div class="form-group">
+                                    <label for="deadLineForReg">Deadline for Registration</label>
+                                    <input type="datetime-local" class="form-control" th:field="*{deadLineForReg}"
+                                           id="deadLineForReg"
+                                           name="deadLineForReg"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm">
+                                <!-- Location -->
+                                <div class="form-group">
+                                    <label for="location">Location</label>
+                                    <input type="text" class="form-control" th:field="*{location}" id="location"
+                                           name="location"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <!-- Status -->
+                                <div class="form-group">
+                                    <label for="status">Status</label>
+                                    <select class="form-control" id="status" name="status" required>
+                                        <option th:each="status : ${statuses}"
+                                                th:value="${status}"
+                                                th:text="${status}"
+                                                th:selected="${status} == *{status}">
+                                    </select>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" th:field="*{description}"
+                                      name="description"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm">
+                                <!-- Starts At -->
+                                <div class="form-group">
+                                    <label for="startsAt">Starts At</label>
+                                    <input type="datetime-local" class="form-control" th:field="*{startsAt}"
+                                           id="startsAt"
+                                           name="startsAt"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <!-- Ends At -->
+                                <div class="form-group">
+                                    <label for="endsAt">Ends At</label>
+                                    <input type="datetime-local" class="form-control" th:field="*{endsAt}" id="endsAt"
+                                           name="endsAt" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Skills Required -->
+                        <div class="form-group">
+                            <label for="skillInput">Skills Required</label>
+                            <div class="d-flex">
+                                <input type="text" class="form-control" id="skillInput" name="skillInput"
+                                       placeholder="Enter a skill">
+                                <button type="button" class="btn btn-primary ml-2" id="addSkillBtn">Add</button>
+                            </div>
+                            <div id="skillsList" class="skill-list"></div>
+                            <input type="hidden" th:field="*{skillsRequired}" id="skills">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary">Save Opportunity</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div th:replace="~{common/footer :: footer}">
+
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Array to store the added skills
+
+        let skills = /*[[${volOpp.skillsRequired}]]*/ [];
+
+    window.onload = function() {
+        console.log(/*[[${volOpp.skillsRequired}]]*/ []);
+        updateSkillsList();
+};
+function updateSkillsList() {
+    const skillsListDiv = document.getElementById('skillsList');
+    const hiddenSkillsInput = document.getElementById('skills');
+
+    skillsListDiv.innerHTML = '';  // Clear the list
+
+    // Clear the hidden input before updating it
+    hiddenSkillsInput.value = '';
+
+    skills.forEach((skill, index) => {
+        const skillItem = document.createElement('span');
+        skillItem.className = 'skill-item';
+        skillItem.innerHTML = skill +
+            '<span class="remove-btn" onclick="removeSkill(' + index + ')">×</span>';
+        skillsListDiv.appendChild(skillItem);
+    });
+
+    hiddenSkillsInput.value = skills;
+}
+
+    // Function to add a skill to the list
+    document.getElementById('addSkillBtn').addEventListener('click', function () {
+        const skillInput = document.getElementById('skillInput');
+        const skill = skillInput.value.trim();
+
+        if (skill && !skills.includes(skill)) {
+            skills.push(skill);
+            skillInput.value = '';  // Clear the input field
+            updateSkillsList();
+        } else {
+            alert('Please enter a valid skill.');
+        }
+    });
+
+    // Function to remove a skill from the list
+    function removeSkill(index) {
+        skills.splice(index, 1);
+        updateSkillsList();
+    }
+</script>
+
+</body>
+
+</html>

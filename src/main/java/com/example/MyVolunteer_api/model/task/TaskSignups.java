@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -57,11 +58,26 @@ public class TaskSignups {
     @Temporal(TemporalType.TIMESTAMP)
     private Date completionDate;
 
+    public Date getAssignedDate() {
+        if (task != null) {
+            return assignedDate = task.getStartsAt();
+        }
+        return assignedDate;
+    }
+
+    public Date getCompletionDate() {
+        if (task != null) {
+            return completionDate = task.getEndsAt();
+        }
+        return completionDate;
+    }
+
     public SignUpStatus getStatus() {
-        if (status==SignUpStatus.TAKEN && new Date().after(completionDate)) {
-            status=SignUpStatus.COMPLETED;
+        if (status == SignUpStatus.TAKEN && new Date().after(getCompletionDate())) {
+            status = SignUpStatus.COMPLETED;
         }
         return status;
     }
+
 
 }

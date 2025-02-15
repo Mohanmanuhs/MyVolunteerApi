@@ -15,11 +15,9 @@ public class VolunteerService {
     @Autowired
     private VolunteerRepo volunteerRepo;
 
-
     public User createVolunteer(Volunteer volunteer) {
         return volunteerRepo.save(volunteer);
     }
-
 
     public Optional<Volunteer> findById(Integer volunteerId) {
         return volunteerRepo.findById(volunteerId);

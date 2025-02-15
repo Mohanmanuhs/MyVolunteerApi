@@ -37,12 +37,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(customizer -> customizer.disable())
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("user/register", "user/login","user/changePassword","/test/*","/css/*","/volunteerOpp/getAll","/volunteerOpp/search","api/auth/*")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http.csrf(customizer -> customizer.disable()).authorizeHttpRequests(request -> request.requestMatchers("user/register", "user/login", "user/changePassword", "/test/*", "/css/*", "/volunteerOpp/getAll","/taskRatings/ratings","/volunteerOpp/details/*", "/volunteerOpp/search", "api/auth/*").permitAll().anyRequest().authenticated()).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

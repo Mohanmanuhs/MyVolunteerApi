@@ -1,16 +1,15 @@
 package com.example.MyVolunteer_api.service.user;
 
-import com.example.MyVolunteer_api.dto.ChangePassDto;
+import com.example.MyVolunteer_api.dto.auth.ChangePassDto;
 import com.example.MyVolunteer_api.model.user.User;
 
 public interface UserService {
 
-    User createUser(User user);
+    void createUser(User user);
 
-    // Generate OTP, save it to the user, and send via email
     void generateAndSendOTP(User user);
 
-    User changePassword(ChangePassDto changePassDto);
+    void changePassword(ChangePassDto changePassDto);
 
     User updateUser(User user);
 

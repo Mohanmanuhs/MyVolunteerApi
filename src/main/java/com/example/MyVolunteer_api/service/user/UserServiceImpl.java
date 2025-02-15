@@ -1,9 +1,9 @@
 package com.example.MyVolunteer_api.service.user;
 
-import com.example.MyVolunteer_api.dto.ChangePassDto;
+import com.example.MyVolunteer_api.dto.auth.ChangePassDto;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.repository.user.UserRepo;
-import com.example.MyVolunteer_api.service.EmailService;
+import com.example.MyVolunteer_api.service.auth.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,30 +26,28 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User createUser(User user) {
+    public void createUser(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
-        return userRepo.save(user);
+        userRepo.save(user);
     }
 
-    // Generate a 6-digit OTP
     private String generateOTP() {
         Random random = new Random();
         return String.format("%06d", random.nextInt(1000000));
     }
 
-    // Generate OTP, save it to the user, and send via email
     @Override
     public void generateAndSendOTP(User user) {
         String otp = generateOTP();
         user.setOtp(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5)); // OTP valid for 5 minutes
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
         userRepo.save(user);
 
         emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
     @Override
-    public User changePassword(ChangePassDto changePassDto) {
+    public void changePassword(ChangePassDto changePassDto) {
         User user = userRepo.findByEmail(changePassDto.getEmail());
         if (user == null) {
             throw new UsernameNotFoundException("user with this email not found");
@@ -57,7 +55,7 @@ public class UserServiceImpl implements UserService {
             throw new InputMismatchException("password don't match old password");
         }
         user.setPassword(encoder.encode(changePassDto.getNewPassword()));
-        return userRepo.save(user);
+        userRepo.save(user);
     }
 
     @Override

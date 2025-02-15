@@ -1,8 +1,8 @@
 package com.example.MyVolunteer_api.service.task;
 
 import com.example.MyVolunteer_api.constants.SignUpStatus;
-import com.example.MyVolunteer_api.dto.SignupForVolDto;
-import com.example.MyVolunteer_api.dto.VolunteerOpportunitiesDTO;
+import com.example.MyVolunteer_api.dto.task.SignupForVolDto;
+import com.example.MyVolunteer_api.dto.task.VolunteerOpportunitiesDTO;
 import com.example.MyVolunteer_api.model.task.TaskSignups;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
 import com.example.MyVolunteer_api.model.user.Volunteer;
@@ -33,32 +33,15 @@ public class TaskSignupsService {
     }
 
     public List<SignupForVolDto> getAllSignupsByVolunteer(Volunteer volunteer) {
-        return taskSignupsRepo.findByVolunteer(volunteer).stream().map(signup -> new SignupForVolDto(
-                signup.getSignupId(),
-                signup.getTaskTitle(),
-                signup.getTaskDesc(),
-                signup.getOrganizedBy(),
-                signup.getAssignedDate(),
-                signup.getCompletionDate(),
-                signup.getStatus())).collect(Collectors.toList());
+        return taskSignupsRepo.findByVolunteer(volunteer).stream().map(signup -> new SignupForVolDto(signup.getSignupId(), signup.getTaskTitle(), signup.getTaskDesc(), signup.getOrganizedBy(), signup.getAssignedDate(), signup.getCompletionDate(), signup.getStatus())).collect(Collectors.toList());
     }
 
     public boolean isVolRegForTask(Volunteer volunteer, VolunteerOpportunities volunteerOpportunities) {
-        return taskSignupsRepo.existsByVolunteerAndTaskAndStatus(volunteer,volunteerOpportunities, SignUpStatus.TAKEN);
+        return taskSignupsRepo.existsByVolunteerAndTaskAndStatus(volunteer, volunteerOpportunities, SignUpStatus.TAKEN);
     }
 
     public List<VolunteerOpportunitiesDTO> getAllTaskSignupsByVolunteer(Volunteer volunteer) {
-        return taskSignupsRepo.findTasksByVolunteer(volunteer,SignUpStatus.TAKEN).stream().map(task -> new VolunteerOpportunitiesDTO(
-                task.getTaskId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getLocation(),
-                task.getSkills_required(),
-                task.getOrganization_name(),
-                task.getDeadLineForReg(),
-                task.getStartsAt(),
-                task.getEndsAt(),task.getStatus()
-        )).collect(Collectors.toList());
+        return taskSignupsRepo.findTasksByVolunteer(volunteer, SignUpStatus.TAKEN).stream().map(task -> new VolunteerOpportunitiesDTO(task.getTaskId(), task.getTitle(), task.getDescription(), task.getLocation(), task.getSkills_required(), task.getOrganization_name(), task.getDeadLineForReg(), task.getStartsAt(), task.getEndsAt(), task.getStatus())).collect(Collectors.toList());
     }
 
     public void cancelSignUp(Volunteer volunteer, VolunteerOpportunities task) {

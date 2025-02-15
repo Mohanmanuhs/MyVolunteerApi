@@ -1,6 +1,6 @@
 package com.example.MyVolunteer_api.service.task;
 
-import com.example.MyVolunteer_api.dto.VolRatingsDto;
+import com.example.MyVolunteer_api.dto.task.VolRatingsDto;
 import com.example.MyVolunteer_api.model.task.TaskRatings;
 import com.example.MyVolunteer_api.model.task.VolunteerOpportunities;
 import com.example.MyVolunteer_api.model.user.Organization;
@@ -41,49 +41,17 @@ public class TaskRatingsService {
 
     public List<VolRatingsDto> findByVolunteer(Volunteer user, String filter) {
         if (Objects.equals(filter, "for")) {
-            return taskRatingsRepo.findByVolunteer(user).stream()
-                    .filter(taskRatings -> taskRatings.getRatingByOrg() != null)
-                    .map(taskRatings ->
-                            new VolRatingsDto(
-                                    taskRatings.getRatingByOrg(),
-                                    taskRatings.getOrganization().getName(),
-                                    taskRatings.getFeedbackByOrg()
-                            )
-                    ).collect(Collectors.toList());
-        }else{
-            return taskRatingsRepo.findByVolunteer(user).stream()
-                    .filter(taskRatings -> taskRatings.getRatingByVol() != null)
-                    .map(taskRatings ->
-                            new VolRatingsDto(
-                                    taskRatings.getRatingByVol(),
-                                    taskRatings.getOrganization().getName(),
-                                    taskRatings.getFeedbackByVol()
-                            )
-                    ).collect(Collectors.toList());
+            return taskRatingsRepo.findByVolunteer(user).stream().filter(taskRatings -> taskRatings.getRatingByOrg() != null).map(taskRatings -> new VolRatingsDto(taskRatings.getRatingByOrg(), taskRatings.getOrganization().getName(), taskRatings.getFeedbackByOrg())).collect(Collectors.toList());
+        } else {
+            return taskRatingsRepo.findByVolunteer(user).stream().filter(taskRatings -> taskRatings.getRatingByVol() != null).map(taskRatings -> new VolRatingsDto(taskRatings.getRatingByVol(), taskRatings.getOrganization().getName(), taskRatings.getFeedbackByVol())).collect(Collectors.toList());
         }
     }
 
     public List<VolRatingsDto> findByOrganization(Organization user, String filter) {
         if (Objects.equals(filter, "for")) {
-            return taskRatingsRepo.findByOrganization(user).stream()
-                    .filter(taskRatings -> taskRatings.getRatingByVol() != null)
-                    .map(taskRatings ->
-                            new VolRatingsDto(
-                                    taskRatings.getRatingByVol(),
-                                    taskRatings.getVolunteer().getName(),
-                                    taskRatings.getFeedbackByVol()
-                            )
-                    ).collect(Collectors.toList());
-        }else{
-            return taskRatingsRepo.findByOrganization(user).stream()
-                    .filter(taskRatings -> taskRatings.getRatingByOrg() != null)
-                    .map(taskRatings ->
-                            new VolRatingsDto(
-                                    taskRatings.getRatingByOrg(),
-                                    taskRatings.getVolunteer().getName(),
-                                    taskRatings.getFeedbackByOrg()
-                            )
-                    ).collect(Collectors.toList());
+            return taskRatingsRepo.findByOrganization(user).stream().filter(taskRatings -> taskRatings.getRatingByVol() != null).map(taskRatings -> new VolRatingsDto(taskRatings.getRatingByVol(), taskRatings.getVolunteer().getName(), taskRatings.getFeedbackByVol())).collect(Collectors.toList());
+        } else {
+            return taskRatingsRepo.findByOrganization(user).stream().filter(taskRatings -> taskRatings.getRatingByOrg() != null).map(taskRatings -> new VolRatingsDto(taskRatings.getRatingByOrg(), taskRatings.getVolunteer().getName(), taskRatings.getFeedbackByOrg())).collect(Collectors.toList());
         }
     }
 }

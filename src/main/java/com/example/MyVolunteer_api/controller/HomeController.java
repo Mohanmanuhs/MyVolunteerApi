@@ -3,11 +3,11 @@ package com.example.MyVolunteer_api.controller;
 import com.example.MyVolunteer_api.constants.Gender;
 import com.example.MyVolunteer_api.constants.OpportunityStatus;
 import com.example.MyVolunteer_api.constants.Role;
-import com.example.MyVolunteer_api.dto.ChangePassDto;
-import com.example.MyVolunteer_api.dto.UserLoginRequest;
-import com.example.MyVolunteer_api.dto.UserRegisterRequest;
-import com.example.MyVolunteer_api.dto.VolOppSaveDto;
-import com.example.MyVolunteer_api.model.UserPrincipal;
+import com.example.MyVolunteer_api.dto.auth.ChangePassDto;
+import com.example.MyVolunteer_api.dto.auth.UserLoginRequest;
+import com.example.MyVolunteer_api.dto.auth.UserRegisterRequest;
+import com.example.MyVolunteer_api.dto.task.VolOppSaveDto;
+import com.example.MyVolunteer_api.model.auth.UserPrincipal;
 import com.example.MyVolunteer_api.model.user.Organization;
 import com.example.MyVolunteer_api.model.user.User;
 import com.example.MyVolunteer_api.model.user.Volunteer;
@@ -48,13 +48,13 @@ public class HomeController {
     @GetMapping("/login")
     public String loginRequestPage(Model model) {
         model.addAttribute("userRequest", new UserLoginRequest());
-        return "loginPage";
+        return "auth/loginPage";
     }
 
     @GetMapping("/changePassword")
     public String changePasswordPage(Model model) {
         model.addAttribute("userRequest", new ChangePassDto());
-        return "changePassPage";
+        return "auth/changePassPage";
     }
 
     @GetMapping("/register")
@@ -63,20 +63,20 @@ public class HomeController {
         model.addAttribute("userRequest", userRegisterRequest);
         model.addAttribute("roles", Role.values());
         model.addAttribute("genders", Gender.values());
-        return "registerPage";
+        return "auth/registerPage";
     }
 
     @GetMapping("/create")
     public String createVolOpp(Model model) {
         VolOppSaveDto volOpp = new VolOppSaveDto();
         model.addAttribute("statuses", OpportunityStatus.values());
-        model.addAttribute("volOpp",volOpp);
-        return "createVolOpp";
+        model.addAttribute("volOpp", volOpp);
+        return "task/createVolOpp";
     }
 
     @GetMapping("/accDelete")
     public String accDelete() {
-        return "accDelete";
+        return "auth/accDelete";
     }
 
     @GetMapping("/orgAccUpdate")
@@ -93,12 +93,12 @@ public class HomeController {
         }
 
         User user = (email != null) ? userService.findByEmail(email) : null;
-        if (user == null || user.getRole()!= Role.ORGANIZATION) {
+        if (user == null || user.getRole() != Role.ORGANIZATION) {
             return "redirect:/test/home";
         }
         Organization organization = (Organization) user;
         model.addAttribute("organization", organization);
-        return "orgUpdateAcc";
+        return "auth/orgUpdateAcc";
     }
 
     @GetMapping("/volAccUpdate")
@@ -111,16 +111,16 @@ public class HomeController {
             UserPrincipal userDetails = (UserPrincipal) principal;
             email = userDetails.getUsername();
         } else if (principal instanceof String) {
-            email = (String) principal; // For cases like anonymous or basic auth
+            email = (String) principal;
         }
 
         User user = (email != null) ? userService.findByEmail(email) : null;
-        if (user == null || user.getRole()!= Role.VOLUNTEER) {
+        if (user == null || user.getRole() != Role.VOLUNTEER) {
             return "redirect:/test/home";
         }
         Volunteer volunteer = (Volunteer) user;
         model.addAttribute("volunteer", volunteer);
-        return "volUpdateAcc";
+        return "auth/volUpdateAcc";
     }
 
     @GetMapping("/profile")
@@ -133,7 +133,7 @@ public class HomeController {
             UserPrincipal userDetails = (UserPrincipal) principal;
             email = userDetails.getUsername();
         } else if (principal instanceof String) {
-            email = (String) principal; // For cases like anonymous or basic auth
+            email = (String) principal;
         }
 
         User user = (email != null) ? userService.findByEmail(email) : null;
@@ -147,7 +147,7 @@ public class HomeController {
             Volunteer volunteer = (Volunteer) user;
             model.addAttribute("user", volunteer);
         }
-        return "profile";
+        return "auth/profile";
     }
 
 

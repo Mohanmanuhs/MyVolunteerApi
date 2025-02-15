@@ -1,7 +1,8 @@
 package com.example.MyVolunteer_api.config;
 
-import com.example.MyVolunteer_api.service.JwtService;
-import com.example.MyVolunteer_api.service.MyUserDetailsService;
+import com.example.MyVolunteer_api.service.auth.JwtService;
+import com.example.MyVolunteer_api.service.auth.MyUserDetailsService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -40,26 +41,35 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-        String userName = null;
-        if(token != null) {
-            userName = jwtService.extractUserName(token);
-        }
+        try {
+            if (token != null) {
+                String userName = jwtService.extractUserName(token);
 
-        if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(userName);
 
-            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(userName);
-            System.out.println(userDetails);
-            if (jwtService.validateToken(token, userDetails)) {
+                    if (jwtService.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
+                }
             }
-        }
 
-        filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            Cookie cookie = new Cookie("jwt", null);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+            response.sendRedirect("/api/auth/sessionExpired");
+        } catch (Exception e) {
+            System.out.println("JWT Error: " + e.getMessage());
+        }
     }
 }
